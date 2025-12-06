@@ -2,24 +2,11 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
-class Employee(AbstractUser):
-    fullName = models.CharField(max_length=255)
-    email = models.EmailField(unique=True)
-    password = models.CharField(max_length=255)
-    country = models.CharField(max_length=255)
-    city = models.CharField(max_length=255)
-    address = models.CharField(max_length=255)
-    role = models.TextField(blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-
 class Category(models.Model):
     name = models.CharField(max_length=255)
     code = models.CharField(max_length=255, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
 
 
 class SubCategory(models.Model):
