@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Show Subcategories{% endblock %}
+
+{% block content %}
+                <div class="page-header">
+                    <div class="page-title">
+                        <h4>Show Subcategories</h4>
+                    </div>
+                    <div class="page-btn">
+                        <a href="{% url 'subcategories_create' %}" class="btn btn-added">
+                            <img src="{% static 'img/icons/plus.svg' %}" class="me-1" alt="img">Add Subcategory
+                        </a>
+                    </div>
+                </div>
+                {% if messages %}
+                <div class="mt-2">
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-top">
+                            <div class="search-set">
+                                <div class="search-path">
+                                </div>
+                                <div class="search-input">
+                                    <a class="btn btn-searchset"><img src="{% static 'img/icons/search-white.svg' %}"
+                                            alt="img"></a>
+                                </div>
+                            </div>
+                            <div class="wordset">
+                                <ul>
+                                    <li>
+                                        <a data-bs-toggle="tooltip" data-bs-placement="top" title="pdf"><img
+                                                src="{% static 'img/icons/pdf.svg' %}" alt="img"></a>
+                                    </li>
+                                    <li>
+                                        <a data-bs-toggle="tooltip" data-bs-placement="top" title="excel"><img
+                                                src="{% static 'img/icons/excel.svg' %}" alt="img"></a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table datanew">
+                                <thead>
+                                    <tr>
+                                        <th>Subcategory ID</th>
+                                        <th>Subcategory Name</th>
+                                        <th>Subcategory Code</th>
+                                        <th>Category</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for subcategory in subcategories %}
+                                    <tr>
+                                        <td>{{ subcategory.id }}</td>
+
+                                        <td class="productimgname">
+                                            <a href="javascript:void(0);">{{ subcategory.name }}</a>
+                                        </td>
+
+                                        <td>{{ subcategory.code }}</td>
+
+                                        <td>
+                                            {{ subcategory.category.name }}
+                                        </td>
+
+                                        <td>
+                                            <a href="{% url 'subcategories_edit' subcategory.id %}"
+                                                class="btn btn-sm btn-primary me-2">
+                                                Edit
+                                            </a>
+                                            <a href="{% url 'subcategories_delete' subcategory.id %}"
+                                                class="btn btn-sm btn-danger">
+                                                Delete
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="5" class="text-center">No subcategories found.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+{% endblock %}

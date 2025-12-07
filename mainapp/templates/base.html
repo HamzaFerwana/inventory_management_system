@@ -1,0 +1,173 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+    <meta name="description" content="POS - Bootstrap Admin Template">
+    <meta name="keywords"
+        content="admin, estimates, bootstrap, business, corporate, creative, invoice, html5, responsive, Projects">
+    <meta name="author" content="Dreamguys - Bootstrap Admin Template">
+    <meta name="robots" content="noindex, nofollow">
+    <title>{% block title %}Inventory{% endblock %}</title>
+
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'img/favicon.jpg' %}">
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/animate.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dataTables.bootstrap4.min.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/select2/css/select2.min.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/fontawesome/css/fontawesome.min.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/fontawesome/css/all.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+
+<body>
+    <div id="global-loader">
+        <div class="whirly-loader"></div>
+    </div>
+
+    <div class="main-wrapper">
+
+        <div class="header">
+            <div class="header-left active">
+                <a href="{% url 'index' %}" class="logo">
+                    <img src="{% static 'img/logo.png' %}" alt="">
+                </a>
+                <a href="{% url 'index' %}" class="logo-small">
+                    <img src="{% static 'img/logo-small.png' %}" alt="">
+                </a>
+            </div>
+
+            <a id="mobile_btn" class="mobile_btn" href="#sidebar">
+                <span class="bar-icon">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </span>
+            </a>
+
+            <ul class="nav user-menu">
+                {% if request.user.is_authenticated %}
+                <li class="nav-item dropdown has-arrow main-drop">
+                    <a href="javascript:void(0);" class="dropdown-toggle nav-link userset" data-bs-toggle="dropdown">
+                        <span class="user-img">
+                            <img src="https://ui-avatars.com/api/?name={{ request.user.username }}" alt="">
+                            <span class="status online"></span>
+                        </span>
+                    </a>
+                    <div class="dropdown-menu menu-drop-user">
+                        <div class="profilename">
+                            <div class="profileset">
+                                <span class="user-img">
+                                    <img src="https://ui-avatars.com/api/?name={{ request.user.username }}" alt="">
+                                    <span class="status online"></span>
+                                </span>
+                                <div class="profilesets">
+                                    <h6>{{ request.user.username }}</h6>
+                                    <h5>Admin</h5>
+                                </div>
+                            </div>
+                            <hr class="m-0">
+                            <form method="post" action="{% url 'logout' %}" class="px-3 pb-2">
+                                {% csrf_token %}
+                                <button type="submit" class="dropdown-item logout w-100 text-start">
+                                    <img src="{% static 'img/icons/log-out.svg' %}" class="me-2" alt="img">
+                                    Logout
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </li>
+                {% else %}
+                <li class="nav-item">
+                    <a href="{% url 'login' %}" class="nav-link">
+                        Login
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-inner slimscroll">
+                <div id="sidebar-menu" class="sidebar-menu">
+                    <ul>
+                        <li>
+                            <a href="{% url 'index' %}"
+                                class="{% if request.resolver_match.url_name == 'index' %}active{% endif %}">
+                                <img src="{% static 'img/icons/dashboard.svg' %}" alt="img">
+                                <span>Dashboard</span>
+                            </a>
+                        </li>
+
+                        <li class="submenu">
+                            <a href="javascript:void(0);">
+                                <img src="{% static 'img/icons/product.svg' %}" alt="img">
+                                <span>Product</span> <span class="menu-arrow"></span>
+                            </a>
+                            <ul>
+                                <li>
+                                    <a href="{% url 'products_index' %}"
+                                        class="{% if request.resolver_match.url_name == 'products_index' or request.resolver_match.url_name == 'products_edit' %}active{% endif %}">
+                                        Product List
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{% url 'products_create' %}"
+                                        class="{% if request.resolver_match.url_name == 'products_create' %}active{% endif %}">
+                                        Add Product
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a href="{% url 'categories_index' %}"
+                                        class="{% if request.resolver_match.url_name == 'categories_index' or request.resolver_match.url_name == 'categories_edit' %}active{% endif %}">
+                                        Category List
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{% url 'categories_create' %}"
+                                        class="{% if request.resolver_match.url_name == 'categories_create' %}active{% endif %}">
+                                        Add Category
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a href="{% url 'subcategories_index' %}"
+                                        class="{% if request.resolver_match.url_name == 'subcategories_index' or request.resolver_match.url_name == 'subcategories_edit' %}active{% endif %}">
+                                        Sub Category List
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{% url 'subcategories_create' %}"
+                                        class="{% if request.resolver_match.url_name == 'subcategories_create' %}active{% endif %}">
+                                        Add Sub Category
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="page-wrapper">
+            <div class="content">
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+
+    </div>
+
+    <script src="{% static 'js/jquery-3.6.0.min.js' %}"></script>
+    <script src="{% static 'js/feather.min.js' %}"></script>
+    <script src="{% static 'js/jquery.slimscroll.min.js' %}"></script>
+    <script src="{% static 'js/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'js/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'plugins/sweetalert/sweetalert2.all.min.js' %}"></script>
+    <script src="{% static 'plugins/sweetalert/sweetalerts.min.js' %}"></script>
+    <script src="{% static 'js/script.js' %}"></script>
+</body>
+
+</html>

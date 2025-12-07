@@ -27,8 +27,8 @@ class Product(models.Model):
         ("active", "Active"),
         ("inactive", "Inactive"),
     ]
+
     name = models.CharField(max_length=255)
-    brand = models.CharField(max_length=60)
     sub_category = models.ForeignKey(
         "SubCategory",
         on_delete=models.PROTECT,
@@ -40,21 +40,25 @@ class Product(models.Model):
     sku = models.CharField(max_length=255, unique=True)
     quantity = models.PositiveIntegerField(default=0)
     description = models.TextField(blank=True, null=True)
+
     status = models.CharField(
         max_length=10,
         choices=STATUS_CHOICES,
-        default="open",
+        default="active",
     )
+
     price = models.DecimalField(max_digits=8, decimal_places=2)
     discount_percentage = models.DecimalField(
         max_digits=5,
         decimal_places=2,
         default=0,
     )
+
     main_image = models.ImageField(
         upload_to="products/",
         blank=True,
         null=True,
     )
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
