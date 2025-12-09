@@ -35,18 +35,20 @@
                                             alt="img"></a>
                                 </div>
                             </div>
-                            <div class="wordset">
-                                <ul>
-                                    <li>
-                                        <a data-bs-toggle="tooltip" data-bs-placement="top" title="pdf"><img
-                                                src="{% static 'img/icons/pdf.svg' %}" alt="img"></a>
-                                    </li>
-                                    <li>
-                                        <a data-bs-toggle="tooltip" data-bs-placement="top" title="excel"><img
-                                                src="{% static 'img/icons/excel.svg' %}" alt="img"></a>
-                                    </li>
-                                </ul>
-                            </div>
+                               <div class="wordset">
+                <ul>
+                    <li>
+                        <a href="{% url 'export_subcategories_pdf' %}" data-bs-toggle="tooltip" title="Export to PDF">
+                            <img src="{% static 'img/icons/pdf.svg' %}" alt="PDF">
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'export_subcategories_excel' %}" data-bs-toggle="tooltip" title="Export to Excel">
+                            <img src="{% static 'img/icons/excel.svg' %}" alt="Excel">
+                        </a>
+                    </li>
+                </ul>
+            </div>
                         </div>
 
                         <div class="table-responsive">

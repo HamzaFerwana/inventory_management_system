@@ -1,9 +1,20 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.http import HttpResponse
 from django.contrib import messages
 from .models import Category, SubCategory, Product, Customer
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+#added views
+from reportlab.lib.pagesizes import letter, A4
+from reportlab.lib import colors
+from reportlab.lib.units import inch
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.enums import TA_CENTER
+import openpyxl
+from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+from datetime import datetime
 
 @login_required
 def index(request):
@@ -459,7 +470,7 @@ def login_view(request):
         password = request.POST.get("password", "")
 
         user = None
-        if email and password:
+        if email and password:      
             try:
                 u = User.objects.get(email=email)
                 user = authenticate(request, username=u.username, password=password)
@@ -631,3 +642,247 @@ def customer_delete(request, pk):
     customer.delete()
     messages.success(request, "Customer deleted successfully.")
     return redirect("customers_index")
+
+class DataExporter:
+    @staticmethod
+    def export_to_pdf(queryset, fields, title, filename_prefix):
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{filename_prefix}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.pdf"'
+        
+        doc = SimpleDocTemplate(response, pagesize=A4)
+        elements = []
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=10,
+            textColor=colors.HexColor('#2c3e50'),
+            spaceAfter=30,
+            alignment=TA_CENTER
+        )
+        
+        elements.append(Paragraph(title, title_style))
+        elements.append(Spacer(1, 0.3*inch))
+
+        headers = [display_name for _, display_name in fields]
+        data = [headers]
+        
+        for obj in queryset:
+            row = []
+            for field_name, _ in fields:
+             
+                value = obj
+                for attr in field_name.split('.'):
+                    value = getattr(value, attr, '')
+                    if value is None:
+                        value = ''
+                row.append(str(value))
+            data.append(row)
+        num_cols = len(fields)
+        available_width = 6.5 * inch
+        col_width = available_width / num_cols
+        table = Table(data, colWidths=[col_width] * num_cols)
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#4CAF50')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 6),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+            ('FONTSIZE', (0, 1), (-1, -1), 4),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.lightgrey]),
+        ]))
+        
+        elements.append(table)
+        elements.append(Spacer(1, 0.5*inch))
+        footer_text = f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | Total Records: {queryset.count()}"
+        elements.append(Paragraph(footer_text, styles['Normal']))
+        
+        doc.build(elements)
+        return response
+    
+    @staticmethod
+    def export_to_excel(queryset, fields, title, filename_prefix):
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = title[:31]
+
+        header_font = Font(name='Calibri', size=12, bold=True, color='FFFFFF')
+        header_fill = PatternFill(start_color='4CAF50', end_color='4CAF50', fill_type='solid')
+        header_alignment = Alignment(horizontal='center', vertical='center')
+        cell_alignment = Alignment(horizontal='center', vertical='center')
+        border = Border(
+            left=Side(style='thin'),
+            right=Side(style='thin'),
+            top=Side(style='thin'),
+            bottom=Side(style='thin')
+        )
+    
+        num_cols = len(fields)
+        ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=num_cols)
+        title_cell = ws.cell(row=1, column=1)
+        title_cell.value = title
+        title_cell.font = Font(name='Calibri', size=16, bold=True)
+        title_cell.alignment = Alignment(horizontal='center', vertical='center')
+        
+        for col_num, (_, display_name) in enumerate(fields, 1):
+            cell = ws.cell(row=3, column=col_num)
+            cell.value = display_name
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.alignment = header_alignment
+            cell.border = border
+
+        for row_num, obj in enumerate(queryset, 4):
+            for col_num, (field_name, _) in enumerate(fields, 1):
+                # Handle nested attributes
+                value = obj
+                for attr in field_name.split('.'):
+                    value = getattr(value, attr, '')
+                    if value is None:
+                        value = ''
+                
+                cell = ws.cell(row=row_num, column=col_num)
+                cell.value = str(value)
+                cell.alignment = cell_alignment
+                cell.border = border
+        for col_num in range(1, num_cols + 1):
+            column_letter = openpyxl.utils.get_column_letter(col_num)
+            max_length = 0
+            for cell in ws[column_letter]:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except:
+                    pass
+            adjusted_width = min(max_length + 2, 50)
+            ws.column_dimensions[column_letter].width = adjusted_width
+        
+        last_row = ws.max_row + 2
+        ws.cell(row=last_row, column=1, 
+                value=f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | Total Records: {queryset.count()}")
+        
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = f'attachment; filename="{filename_prefix}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx"'
+        
+        wb.save(response)
+        return response
+
+def export_categories_pdf(request):
+
+    
+    queryset = Category.objects.all().order_by('-created_at')
+    fields = [
+        ('id', 'Category ID'),
+        ('name', 'Category Name'),
+        ('code', 'Category Code'),
+    ]
+    
+    return DataExporter.export_to_pdf(
+        queryset=queryset,
+        fields=fields,
+        title="Categories Report",
+        filename_prefix="categories"
+    )
+
+def export_categories_excel(request):
+    queryset = Category.objects.all().order_by('-created_at')
+    fields = [
+        ('id', 'Category ID'),
+        ('name', 'Category Name'),
+        ('code', 'Category Code'),
+    ]
+    
+    return DataExporter.export_to_excel(
+        queryset=queryset,
+        fields=fields,
+        title="Categories",
+        filename_prefix="categories"
+    )
+
+def export_products_pdf(request):
+    
+    queryset = Product.objects.select_related('sub_category', 'sub_category__category').all().order_by('-created_at')
+    fields = [
+        ('id', 'Product ID'),
+        ('name', 'Product Name'),
+        ('sku', 'SKU'),
+        ('sub_category.category.name', 'Category'),
+        ('sub_category.name', 'Sub Category'),
+        ('unit', 'Unit'),
+        ('quantity', 'Quantity'),
+        ('price', 'Price'),
+        ('discount_percentage', 'Discount %'),
+        ('status', 'Status'),
+    ]
+    
+    return DataExporter.export_to_pdf(
+        queryset=queryset,
+        fields=fields,
+        title="Products Report",
+        filename_prefix="products"
+    )
+
+
+def export_products_excel(request):
+    queryset = Product.objects.select_related('sub_category', 'sub_category__category').all().order_by('-created_at')
+    fields = [
+        ('id', 'Product ID'),
+        ('name', 'Product Name'),
+        ('sku', 'SKU'),
+        ('sub_category.category.name', 'Category'),
+        ('sub_category.name', 'Sub Category'),
+        ('unit', 'Unit'),
+        ('quantity', 'Quantity'),
+        ('price', 'Price'),
+        ('discount_percentage', 'Discount %'),
+        ('status', 'Status'),
+        ('description', 'Description')
+    ]
+    return DataExporter.export_to_excel(
+        queryset=queryset,
+        fields=fields,
+        title="Products",
+        filename_prefix="products"
+    )
+
+def export_subcategories_pdf(request):
+    queryset = SubCategory.objects.select_related('category').all().order_by('-created_at')
+    fields = [
+        ('id', 'Sub Category ID'),
+        ('name', 'Sub Category Name'),
+        ('code', 'Sub Category Code'),
+        ('category.name', 'Parent Category'),
+        ('description', 'Description'),
+    ]
+    
+    return DataExporter.export_to_pdf(
+        queryset=queryset,
+        fields=fields,
+        title="Sub Categories Report",
+        filename_prefix="subcategories"
+    )
+def export_subcategories_excel(request):
+    
+    queryset = SubCategory.objects.select_related('category').all().order_by('-created_at')
+    fields = [
+        ('id', 'Sub Category ID'),
+        ('name', 'Sub Category Name'),
+        ('code', 'Sub Category Code'),
+        ('category.name', 'Parent Category'),
+        ('description', 'Description'),
+    ]
+    
+    return DataExporter.export_to_excel(
+        queryset=queryset,
+        fields=fields,
+        title="Sub Categories",
+        filename_prefix="subcategories"
+    )
