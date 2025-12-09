@@ -31,4 +31,12 @@ urlpatterns = [
     path("register_data/", views.register_data, name="register_data"),
     path("login/", views.login_view, name="login"),
     path("logout/", views.logout_view, name="logout"),
+    #added urls
+    path('categories/export/pdf/', views.export_categories_pdf, name='export_categories_pdf'),
+    path('categories/export/excel/', views.export_categories_excel, name='export_categories_excel'),
+    path('products/export/pdf/', views.export_products_pdf, name='export_products_pdf'),
+    path('products/export/excel/', views.export_products_excel, name='export_products_excel'),
+    path('subcategories/export/pdf/', views.export_subcategories_pdf, name='export_subcategories_pdf'),
+    path('subcategories/export/excel/', views.export_subcategories_excel, name='export_subcategories_excel'),
+
 ]
