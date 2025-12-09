@@ -1,137 +1,95 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 {% load static %}
 
-{% block title %}Customer List{% endblock %}
+{% block title %}Show Customers{% endblock %}
 
 {% block content %}
 <div class="page-header">
-<div class="page-title">
-<h4>Customer List</h4>
-<h6>Manage your Customers</h6>
+    <div class="page-title">
+        <h4>Show Customers</h4>
+    </div>
+    <div class="page-btn">
+        <a href="{% url 'customers_create' %}" class="btn btn-added">
+            <img src="{% static 'img/icons/plus.svg' %}" class="me-1" alt="img">Add Customer
+        </a>
+    </div>
 </div>
-<div class="page-btn">
-<a href="{% url 'customers_create' %}" class="btn btn-added"><img src="{% static 'img/icons/plus.svg' %}" alt="img">Add Customer</a>
+
+{% if messages %}
+<div class="mt-2">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
 </div>
-</div>
+{% endif %}
 
 <div class="card">
-<div class="card-body">
-<div class="table-top">
-<div class="search-set">
-<div class="search-path">
-<a class="btn btn-filter" id="filter_search">
-<img src="{% static 'img/icons/filter.svg' %}" alt="img">
-<span><img src="{% static 'img/icons/closes.svg' %}" alt="img"></span>
-</a>
-</div>
-<div class="search-input">
-<a class="btn btn-searchset"><img src="{% static 'img/icons/search-white.svg' %}" alt="img"></a>
-</div>
-</div>
-<div class="wordset">
-<ul>
-<li>
-<a data-bs-toggle="tooltip" data-bs-placement="top" title="pdf"><img src="{% static 'img/icons/pdf.svg' %}" alt="img"></a>
-</li>
-<li>
-<a data-bs-toggle="tooltip" data-bs-placement="top" title="excel"><img src="{% static 'img/icons/excel.svg' %}" alt="img"></a>
-</li>
-<li>
-<a data-bs-toggle="tooltip" data-bs-placement="top" title="print"><img src="{% static 'img/icons/printer.svg' %}" alt="img"></a>
-</li>
-</ul>
-</div>
-</div>
+    <div class="card-body">
+        <div class="table-top">
+            <div class="search-set">
+                <div class="search-path">
+                </div>
+                <div class="search-input">
+                    <a class="btn btn-searchset">
+                        <img src="{% static 'img/icons/search-white.svg' %}" alt="img">
+                    </a>
+                </div>
+            </div>
+        </div>
 
-<div class="card" id="filter_inputs">
-<div class="card-body pb-0">
-<div class="row">
-<div class="col-lg-2 col-sm-6 col-12">
-<div class="form-group">
-<input type="text" placeholder="Enter Customer Code">
+        <div class="table-responsive">
+            <table class="table datanew">
+                <thead>
+                    <tr>
+                        <th>Customer Name</th>
+                        <th>Phone</th>
+                        <th>Email</th>
+                        <th>Country</th>
+                        <th>City</th>
+                        <th>Address</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for customer in customers %}
+                    <tr>
+                        <td class="productimgname">
+                            <a href="javascript:void(0);" class="product-img">
+                                {% if customer.avatar %}
+                                <img src="{{ customer.avatar.url }}" alt="customer">
+                                {% else %}
+                                <img src="{% static 'img/customer/customer1.jpg' %}" alt="customer">
+                                {% endif %}
+                            </a>
+                            <a href="javascript:void(0);">{{ customer.name }}</a>
+                        </td>
+                        <td>{{ customer.phone }}</td>
+                        <td>{{ customer.email }}</td>
+                        <td>{{ customer.country }}</td>
+                        <td>{{ customer.city }}</td>
+                        <td>{{ customer.address }}</td>
+                        <td>
+                            <a href="{% url 'customers_edit' customer.pk %}"
+                                class="btn btn-sm btn-primary me-2">Edit</a>
+                            <a href="{% url 'customers_delete' customer.pk %}" class="btn btn-sm btn-danger">Delete</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td class="text-center">No customers found</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
-</div>
-<div class="col-lg-2 col-sm-6 col-12">
-<div class="form-group">
-<input type="text" placeholder="Enter Customer Name">
-</div>
-</div>
-<div class="col-lg-2 col-sm-6 col-12">
-<div class="form-group">
-<input type="text" placeholder="Enter Phone Number">
-</div>
-</div>
-<div class="col-lg-2 col-sm-6 col-12">
-<div class="form-group">
-<input type="text" placeholder="Enter Email">
-</div>
-</div>
-<div class="col-lg-1 col-sm-6 col-12  ms-auto">
-<div class="form-group">
-<a class="btn btn-filters ms-auto"><img src="{% static 'img/icons/search-whites.svg' %}" alt="img"></a>
-</div>
-</div>
-</div>
-</div>
-</div>
-
-<div class="table-responsive">
-<table class="table  datanew">
-<thead>
-<tr>
-<th>
-<label class="checkboxs">
-<input type="checkbox" id="select-all">
-<span class="checkmarks"></span>
-</label>
-</th>
-<th>Customer Name</th>
-<th>Phone</th>
-<th>Email</th>
-<th>Country</th>
-<th>Action</th>
-</tr>
-</thead>
-<tbody>
-{% for customer in customers %}
-<tr>
-<td>
-<label class="checkboxs">
-<input type="checkbox">
-<span class="checkmarks"></span>
-</label>
-</td>
-<td class="productimgname">
-<a href="javascript:void(0);" class="product-img">
-{% if customer.avatar %}
-<img src="{{ customer.avatar.url }}" alt="customer">
-{% else %}
-<img src="{% static 'img/customer/customer1.jpg' %}" alt="customer">
-{% endif %}
-</a>
-<a href="javascript:void(0);">{{ customer.name }}</a>
-</td>
-<td>{{ customer.phone }}</td>
-<td>{{ customer.email }}</td>
-<td>{{ customer.country }}</td>
-<td>
-<a class="me-3" href="{% url 'customers_edit' customer.pk %}">
-<img src="{% static 'img/icons/edit.svg' %}" alt="img">
-</a>
-<a class="me-3" href="{% url 'customers_delete' customer.pk %}">
-<img src="{% static 'img/icons/delete.svg' %}" alt="img">
-</a>
-</td>
-</tr>
-{% empty %}
-<tr>
-<td colspan="6" class="text-center">No customers found</td>
-</tr>
-{% endfor %}
-</tbody>
-</table>
-</div>
-</div>
-</div>
-
 {% endblock %}

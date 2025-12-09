@@ -1,41 +1,41 @@
 {% extends "base.html" %}
 {% load static %}
 
+
 {% block title %}Show Products{% endblock %}
 
 {% block content %}
-                <div class="page-header">
-                    <div class="page-title">
-                        <h4>Show Products</h4>
-                    </div>
-                    <div class="page-btn">
-                        <a href="{% url 'products_create' %}" class="btn btn-added">
-                            <img src="{% static 'img/icons/plus.svg' %}" class="me-1" alt="img">Add Product
-                        </a>
-                    </div>
+<div class="page-header">
+    <div class="page-title">
+        <h4>Show Products</h4>
+    </div>
+    <div class="page-btn">
+        <a href="{% url 'products_create' %}" class="btn btn-added">
+            <img src="{% static 'img/icons/plus.svg' %}" class="me-1" alt="img">Add Product
+        </a>
+    </div>
+</div>
+{% if messages %}
+<div class="mt-2">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+<div class="card">
+    <div class="card-body">
+        <div class="table-top">
+            <div class="search-set">
+                <div class="search-path">
                 </div>
-                {% if messages %}
-                <div class="mt-2">
-                    {% for message in messages %}
-                    <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                    {% endfor %}
+                <div class="search-input">
+                    <a class="btn btn-searchset"><img src="{% static 'img/icons/search-white.svg' %}" alt="img"></a>
                 </div>
-                {% endif %}
-                <div class="card">
-                    <div class="card-body">
-                        <div class="table-top">
-                            <div class="search-set">
-                                <div class="search-path">
-                                </div>
-                                <div class="search-input">
-                                    <a class="btn btn-searchset"><img src="{% static 'img/icons/search-white.svg' %}"
-                                            alt="img"></a>
-                                </div>
-                            </div>
-                              <div class="wordset">
+            </div>
+            <div class="wordset">
                 <ul>
                     <li>
                         <a href="{% url 'export_products_pdf' %}" data-bs-toggle="tooltip" title="Export to PDF">
@@ -49,80 +49,81 @@
                     </li>
                 </ul>
             </div>
-                        </div>
+        </div>
 
-                        <div class="table-responsive">
-                            <table class="table datanew">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Product</th>
-                                        <th>Category / Subcategory</th>
-                                        <th>SKU</th>
-                                        <th>Qty</th>
-                                        <th>Unit</th>
-                                        <th>Base Price</th>
-                                        <th>Discount %</th>
-                                        <th>Status</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for product in products %}
-                                    <tr>
-                                        <td>{{ product.id }}</td>
-                                        <td class="productimgname">
-                                            {% if product.main_image %}
-                                            <a href="javascript:void(0);" class="product-img">
-                                                <img src="{{ product.main_image.url }}" alt="{{ product.name }}">
-                                            </a>
-                                            {% else %}
-                                            <a href="javascript:void(0);" class="product-img">
-                                                <img src="{% static 'img/product/default-product.jpg' %}"
-                                                    alt="{{ product.name }}">
-                                            </a>
-                                            {% endif %}
-
-                                            <a href="javascript:void(0);">
-                                                {{ product.name }}
-                                            </a>
-                                        </td>
-                                        <td>
-                                            {% if product.sub_category %}
-                                            {{ product.sub_category.category.name }} / {{ product.sub_category.name }}
-                                            {% else %}
-                                            -
-                                            {% endif %}
-                                        </td>
-
-                                        <td>{{ product.sku }}</td>
-                                        <td>{{ product.quantity }}</td>
-                                        <td>{{ product.unit }}</td>
-
-                                        <td>{{ product.price }}$</td>
-                                        <td>{{ product.discount_percentage }}%</td>
-                                        <td>{{ product.get_status_display }}</td>
-
-                                        <td>
-                                            <a href="{% url 'products_edit' product.id %}"
-                                                class="btn btn-sm btn-primary me-2">
-                                                Edit
-                                            </a>
-                                            <a href="{% url 'products_delete' product.id %}"
-                                                class="btn btn-sm btn-danger">
-                                                Delete
-                                            </a>
-                                        </td>
-                                    </tr>
-                                    {% empty %}
-                                    <tr>
-                                        <td colspan="11" class="text-center">No products found.</td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
+        <div class="table-responsive">
+            <table class="table datanew">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Product</th>
+                        <th>Category / Subcategory</th>
+                        <th>SKU</th>
+                        <th>Qty</th>
+                        <th>Unit</th>
+                        <th>Base Price</th>
+                        <th>Discount %</th>
+                        <th>Discounted Price</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                    <tr>
+                        <td>{{ product.id }}</td>
+                        <td class="productimgname">
+                            {% if product.main_image %}
+                            <a href="javascript:void(0);" class="product-img">
+                                <img src="{{ product.main_image.url }}" alt="{{ product.name }}">
+                            </a>
+                            {% else %}
+                            <a href="javascript:void(0);" class="product-img">
+                                <img src="{% static 'img/product/default-product.jpg' %}" alt="{{ product.name }}">
+                            </a>
+                            {% endif %}
+                            <a href="javascript:void(0);">
+                                {{ product.name }}
+                            </a>
+                        </td>
+                        <td>
+                            {% if product.sub_category %}
+                            {{ product.sub_category.category.name }} / {{ product.sub_category.name }}
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                        <td>{{ product.sku }}</td>
+                        <td>{{ product.quantity }}</td>
+                        <td>{{ product.unit }}</td>
+                        <td>{{ product.price }}$</td>
+                        <td>{{ product.discount_percentage }}%</td>
+                        <td>{{ product.discounted_price }}$</td>
+                        <td>{{ product.get_status_display }}</td>
+                        <td>
+                            <a href="{% url 'products_edit' product.id %}" class="btn btn-sm btn-primary me-2">Edit</a>
+                            <a href="{% url 'products_delete' product.id %}" class="btn btn-sm btn-danger">Delete</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td class="text-center">No products found.</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
 {% endblock %}

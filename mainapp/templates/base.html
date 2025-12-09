@@ -147,6 +147,56 @@
                                 </li>
                             </ul>
                         </li>
+                        <li class="submenu">
+                            <a href="javascript:void(0);">
+                                <img src="{% static 'img/icons/users1.svg' %}" alt="img">
+                                <span>People</span> <span class="menu-arrow"></span>
+                            </a>
+                            <ul>
+                                <li>
+                                    <a href="{% url 'customers_index' %}"
+                                        class="{% if request.resolver_match.url_name == 'customers_index' or request.resolver_match.url_name == 'customers_edit' %}active{% endif %}">
+                                        Customer List
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{% url 'customers_create' %}"
+                                        class="{% if request.resolver_match.url_name == 'customers_create' %}active{% endif %}">
+                                        Add Customer
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="submenu">
+                            <a href="javascript:void(0);">
+                                <img src="{% static 'img/icons/expense1.svg' %}" alt="img">
+                                <span>Expense</span> <span class="menu-arrow"></span>
+                            </a>
+                            <ul>
+                                <li>
+                                    <a href="#" class="">
+                                        Expense List
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" class="">
+                                        Add Expense
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{% url 'expense_categories_index' %}"
+                                        class="{% if request.resolver_match.url_name == 'expense_categories_index' or request.resolver_match.url_name == 'expense_categories_edit' %}active{% endif %}">
+                                        Expense Category List
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{% url 'expense_categories_create' %}"
+                                        class="{% if request.resolver_match.url_name == 'expense_categories_create' %}active{% endif %}">
+                                        Add Expense Category
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
                     </ul>
                 </div>
             </div>

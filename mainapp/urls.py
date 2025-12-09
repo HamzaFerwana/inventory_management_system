@@ -35,12 +35,50 @@ urlpatterns = [
     path("register_data/", views.register_data, name="register_data"),
     path("login/", views.login_view, name="login"),
     path("logout/", views.logout_view, name="logout"),
-    #added urls
-    path('categories/export/pdf/', views.export_categories_pdf, name='export_categories_pdf'),
-    path('categories/export/excel/', views.export_categories_excel, name='export_categories_excel'),
-    path('products/export/pdf/', views.export_products_pdf, name='export_products_pdf'),
-    path('products/export/excel/', views.export_products_excel, name='export_products_excel'),
-    path('subcategories/export/pdf/', views.export_subcategories_pdf, name='export_subcategories_pdf'),
-    path('subcategories/export/excel/', views.export_subcategories_excel, name='export_subcategories_excel'),
-
+    path(
+        "categories/export/pdf/",
+        views.export_categories_pdf,
+        name="export_categories_pdf",
+    ),
+    path(
+        "categories/export/excel/",
+        views.export_categories_excel,
+        name="export_categories_excel",
+    ),
+    path("products/export/pdf/", views.export_products_pdf, name="export_products_pdf"),
+    path(
+        "products/export/excel/",
+        views.export_products_excel,
+        name="export_products_excel",
+    ),
+    path(
+        "subcategories/export/pdf/",
+        views.export_subcategories_pdf,
+        name="export_subcategories_pdf",
+    ),
+    path(
+        "subcategories/export/excel/",
+        views.export_subcategories_excel,
+        name="export_subcategories_excel",
+    ),
+    path(
+        "expense-categories/",
+        views.expense_categories_index,
+        name="expense_categories_index",
+    ),
+    path(
+        "expense-categories/create/",
+        views.expense_category_create,
+        name="expense_categories_create",
+    ),
+    path(
+        "expense-categories/<int:pk>/edit/",
+        views.expense_category_edit,
+        name="expense_categories_edit",
+    ),
+    path(
+        "expense-categories/<int:pk>/delete/",
+        views.expense_category_delete,
+        name="expense_categories_delete",
+    ),
 ]

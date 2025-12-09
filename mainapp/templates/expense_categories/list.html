@@ -1,19 +1,21 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Show Categories{% endblock %}
+{% block title %}Expense Categories{% endblock %}
 
 {% block content %}
 <div class="page-header">
     <div class="page-title">
-        <h4>Show Categories</h4>
+        <h4>Expense Categories</h4>
+        <h6>Manage your expense categories</h6>
     </div>
     <div class="page-btn">
-        <a href="{% url 'categories_create' %}" class="btn btn-added">
+        <a href="{% url 'expense_categories_create' %}" class="btn btn-added">
             <img src="{% static 'img/icons/plus.svg' %}" class="me-1" alt="img">Add Category
         </a>
     </div>
 </div>
+
 {% if messages %}
 <div class="mt-2">
     {% for message in messages %}
@@ -24,29 +26,17 @@
     {% endfor %}
 </div>
 {% endif %}
+
 <div class="card">
     <div class="card-body">
         <div class="table-top">
             <div class="search-set">
-                <div class="search-path">
-                </div>
+                <div class="search-path"></div>
                 <div class="search-input">
-                    <a class="btn btn-searchset"><img src="{% static 'img/icons/search-white.svg' %}" alt="img"></a>
+                    <a class="btn btn-searchset">
+                        <img src="{% static 'img/icons/search-white.svg' %}" alt="img">
+                    </a>
                 </div>
-            </div>
-            <div class="wordset">
-                <ul>
-                    <li>
-                        <a href="{% url 'export_categories_pdf' %}" data-bs-toggle="tooltip" title="Export to PDF">
-                            <img src="{% static 'img/icons/pdf.svg' %}" alt="PDF">
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{% url 'export_categories_excel' %}" data-bs-toggle="tooltip" title="Export to Excel">
-                            <img src="{% static 'img/icons/excel.svg' %}" alt="Excel">
-                        </a>
-                    </li>
-                </ul>
             </div>
         </div>
 
@@ -54,9 +44,10 @@
             <table class="table datanew">
                 <thead>
                     <tr>
-                        <th>Category ID</th>
-                        <th>Category name</th>
-                        <th>Category Code</th>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Code</th>
+                        <th>Description</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -64,20 +55,19 @@
                     {% for category in categories %}
                     <tr>
                         <td>{{ category.id }}</td>
-                        <td class="productimgname">
-                            <a href="javascript:void(0);">{{ category.name }}</a>
-                        </td>
-                        <td>{{ category.code }}</td>
-
+                        <td>{{ category.name }}</td>
+                        <td>{{ category.code|default:"-" }}</td>
+                        <td>{{ category.description|default:"-" }}</td>
                         <td>
-                            <a href="{% url 'categories_edit' category.id %}" class="btn btn-sm btn-primary me-2">
-                                Edit
-                            </a>
-                            <a href="{% url 'categories_delete' category.id %}" class="btn btn-sm btn-danger">Delete</a>
+                            <a href="{% url 'expense_categories_edit' category.id %}"
+                                class="btn btn-sm btn-primary me-2">Edit</a>
+                            <a href="{% url 'expense_categories_delete' category.id %}"
+                                class="btn btn-sm btn-danger">Delete</a>
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
+                        <td></td>
                         <td></td>
                         <td class="text-center">No categories found.</td>
                         <td></td>
@@ -86,7 +76,6 @@
                     {% endfor %}
                 </tbody>
             </table>
-
         </div>
     </div>
 </div>
