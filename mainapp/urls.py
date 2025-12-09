@@ -81,4 +81,8 @@ urlpatterns = [
         views.expense_category_delete,
         name="expense_categories_delete",
     ),
+    path("expenses/", views.expenses_index, name="expenses_index"),
+    path("expenses/create/", views.expense_create, name="expenses_create"),
+    path("expenses/<int:pk>/edit/", views.expense_edit, name="expenses_edit"),
+    path("expenses/<int:pk>/delete/", views.expense_delete, name="expenses_delete"),
 ]

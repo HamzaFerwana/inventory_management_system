@@ -87,3 +87,18 @@ class ExpenseCategory(models.Model):
     description = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+
+class Expense(models.Model):
+    expense_category = models.ForeignKey(
+        "ExpenseCategory",
+        on_delete=models.CASCADE,
+        related_name="expenses",
+    )
+    date = models.DateField()
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    reference = models.CharField(max_length=255, unique=True)
+    expense_for = models.CharField(max_length=255)
+    description = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)

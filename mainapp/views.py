@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.contrib import messages
-from .models import Category, SubCategory, Product, Customer
+from .models import Category, SubCategory, Product, Customer, ExpenseCategory, Expense
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -15,7 +15,6 @@ from reportlab.lib.enums import TA_CENTER
 import openpyxl
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from datetime import datetime
-from .models import ExpenseCategory
 
 
 @login_required
@@ -1054,3 +1053,185 @@ def expense_category_delete(request, pk):
     category.delete()
     messages.success(request, "Expense category deleted successfully.")
     return redirect("expense_categories_index")
+
+
+@login_required
+def expenses_index(request):
+    expenses = Expense.objects.select_related("expense_category").order_by(
+        "-date", "-id"
+    )
+    return render(request, "expenses/list.html", {"expenses": expenses})
+
+
+@login_required
+def expense_create(request):
+    errors = []
+    old = {}
+
+    if request.method == "POST":
+        expense_category_id = request.POST.get("expense_category_id")
+        date = request.POST.get("date", "").strip()
+        amount = request.POST.get("amount", "").strip()
+        reference = request.POST.get("reference", "").strip()
+        expense_for = request.POST.get("expense_for", "").strip()
+        description = request.POST.get("description", "").strip()
+
+        if not expense_category_id:
+            errors.append("Category is required.")
+        if not date:
+            errors.append("Date is required.")
+        if not amount:
+            errors.append("Amount is required.")
+        if not reference:
+            errors.append("Reference is required.")
+        if reference and Expense.objects.filter(reference=reference).exists():
+            errors.append("Reference must be unique.")
+        if not expense_for:
+            errors.append("Expense for is required.")
+
+        expense_category = None
+        if expense_category_id:
+            expense_category = ExpenseCategory.objects.filter(
+                pk=expense_category_id
+            ).first()
+            if not expense_category:
+                errors.append("Selected category does not exist.")
+
+        amount_val = None
+        if amount:
+            try:
+                amount_val = Decimal(amount)
+                if amount_val <= 0:
+                    errors.append("Amount must be greater than zero.")
+            except Exception:
+                errors.append("Amount must be a valid number.")
+
+        if not errors:
+            Expense.objects.create(
+                expense_category=expense_category,
+                date=date,
+                amount=amount_val,
+                reference=reference,
+                expense_for=expense_for,
+                description=description or None,
+            )
+            messages.success(request, "Expense created successfully!")
+            return redirect("expenses_index")
+
+        old = {
+            "expense_category_id": expense_category_id,
+            "date": date,
+            "amount": amount,
+            "reference": reference,
+            "expense_for": expense_for,
+            "description": description,
+        }
+
+    categories = ExpenseCategory.objects.order_by("name")
+    context = {
+        "errors": errors,
+        "old": old,
+        "categories": categories,
+    }
+    return render(request, "expenses/add.html", context)
+
+
+@login_required
+def expense_edit(request, pk):
+    expense = get_object_or_404(Expense, pk=pk)
+    errors = []
+
+    if request.method == "POST":
+        expense_category_id = request.POST.get("expense_category_id")
+        date = request.POST.get("date", "").strip()
+        amount = request.POST.get("amount", "").strip()
+        reference = request.POST.get("reference", "").strip()
+        expense_for = request.POST.get("expense_for", "").strip()
+        description = request.POST.get("description", "").strip()
+
+        if not expense_category_id:
+            errors.append("Category is required.")
+        if not date:
+            errors.append("Date is required.")
+        if not amount:
+            errors.append("Amount is required.")
+        if not reference:
+            errors.append("Reference is required.")
+        if (
+            reference
+            and Expense.objects.filter(reference=reference)
+            .exclude(pk=expense.pk)
+            .exists()
+        ):
+            errors.append("Reference must be unique.")
+        if not expense_for:
+            errors.append("Expense for is required.")
+
+        expense_category = None
+        if expense_category_id:
+            expense_category = ExpenseCategory.objects.filter(
+                pk=expense_category_id
+            ).first()
+            if not expense_category:
+                errors.append("Selected category does not exist.")
+
+        amount_val = None
+        if amount:
+            try:
+                amount_val = Decimal(amount)
+                if amount_val <= 0:
+                    errors.append("Amount must be greater than zero.")
+            except Exception:
+                errors.append("Amount must be a valid number.")
+
+        if not errors:
+            expense.expense_category = expense_category
+            expense.date = date
+            expense.amount = amount_val
+            expense.reference = reference
+            expense.expense_for = expense_for
+            expense.description = description or None
+            expense.save()
+            messages.success(request, "Expense updated successfully!")
+            return redirect("expenses_index")
+
+        old = {
+            "expense_category_id": expense_category_id,
+            "date": date,
+            "amount": amount,
+            "reference": reference,
+            "expense_for": expense_for,
+            "description": description,
+        }
+    else:
+        old = {
+            "expense_category_id": expense.expense_category_id,
+            "date": expense.date,
+            "amount": expense.amount,
+            "reference": expense.reference,
+            "expense_for": expense.expense_for,
+            "description": expense.description or "",
+        }
+
+    categories = ExpenseCategory.objects.order_by("name")
+    context = {
+        "errors": errors,
+        "old": old,
+        "expense": expense,
+        "categories": categories,
+    }
+    return render(request, "expenses/edit.html", context)
+
+
+@login_required
+def expense_delete(request, pk):
+    expense = get_object_or_404(Expense, pk=pk)
+
+    if request.method == "POST":
+        expense.delete()
+        messages.success(request, "Expense deleted successfully.")
+        return redirect("expenses_index")
+
+    expense.delete()
+    messages.success(request, "Expense deleted successfully.")
+    return redirect("expenses_index")

@@ -174,12 +174,14 @@
                             </a>
                             <ul>
                                 <li>
-                                    <a href="#" class="">
+                                    <a href="{% url 'expenses_index' %}"
+                                        class="{% if request.resolver_match.url_name == 'expenses_index' or request.resolver_match.url_name == 'expenses_edit' %}active{% endif %}">
                                         Expense List
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="#" class="">
+                                    <a href="{% url 'expenses_create' %}"
+                                        class="{% if request.resolver_match.url_name == 'expenses_create' %}active{% endif %}">
                                         Add Expense
                                     </a>
                                 </li>
