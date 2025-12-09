@@ -1,16 +1,17 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Show Customers{% endblock %}
+{% block title %}Supplier List{% endblock %}
 
 {% block content %}
 <div class="page-header">
     <div class="page-title">
-        <h4>Show Customers</h4>
+        <h4>Supplier List</h4>
+        <h6>Manage your Suppliers</h6>
     </div>
     <div class="page-btn">
-        <a href="{% url 'customers_create' %}" class="btn btn-added">
-            <img src="{% static 'img/icons/plus.svg' %}" class="me-1" alt="img">Add Customer
+        <a href="{% url 'suppliers_create' %}" class="btn btn-added">
+            <img src="{% static 'img/icons/plus.svg' %}" alt="img">Add Supplier
         </a>
     </div>
 </div>
@@ -30,8 +31,7 @@
     <div class="card-body">
         <div class="table-top">
             <div class="search-set">
-                <div class="search-path">
-                </div>
+                <div class="search-path"></div>
                 <div class="search-input">
                     <a class="btn btn-searchset">
                         <img src="{% static 'img/icons/search-white.svg' %}" alt="img">
@@ -44,43 +44,41 @@
             <table class="table datanew">
                 <thead>
                     <tr>
-                        <th>Customer Name</th>
+                        <th>Supplier Name</th>
                         <th>Phone</th>
                         <th>Email</th>
                         <th>Country</th>
-                        <th>City</th>
-                        <th>Address</th>
                         <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for customer in customers %}
+                    {% for supplier in suppliers %}
                     <tr>
                         <td class="productimgname">
                             <a href="javascript:void(0);" class="product-img">
-                                {% if customer.avatar %}
-                                <img src="{{ customer.avatar.url }}" alt="customer">
+                                {% if supplier.avatar %}
+                                <img src="{{ supplier.avatar.url }}" alt="supplier">
                                 {% endif %}
                             </a>
-                            <a href="javascript:void(0);">{{ customer.name }}</a>
+                            <a href="javascript:void(0);">{{ supplier.name }}</a>
                         </td>
-                        <td>{{ customer.phone }}</td>
-                        <td>{{ customer.email }}</td>
-                        <td>{{ customer.country }}</td>
-                        <td>{{ customer.city }}</td>
-                        <td>{{ customer.address }}</td>
+                        <td>{{ supplier.phone }}</td>
+                        <td>{{ supplier.email }}</td>
+                        <td>{{ supplier.country }}</td>
                         <td>
-                            <a href="{% url 'customers_edit' customer.pk %}"
-                                class="btn btn-sm btn-primary me-2">Edit</a>
-                            <a href="{% url 'customers_delete' customer.pk %}" class="btn btn-sm btn-danger">Delete</a>
+                            <a class="btn btn-sm btn-primary me-2" href="{% url 'suppliers_edit' supplier.pk %}">
+                                Edit
+                            </a>
+                            <a class="btn btn-sm btn-danger" href="{% url 'suppliers_delete' supplier.pk %}">
+                                Delete
+                            </a>
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
                         <td></td>
                         <td></td>
-                        <td class="text-center">No customers found</td>
-                        <td></td>
+                        <td class="text-center">No suppliers found</td>
                         <td></td>
                         <td></td>
                     </tr>

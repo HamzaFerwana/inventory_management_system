@@ -165,6 +165,18 @@
                                         Add Customer
                                     </a>
                                 </li>
+                                <li>
+                                    <a href="{% url 'suppliers_index' %}"
+                                        class="{% if request.resolver_match.url_name == 'suppliers_index' or request.resolver_match.url_name == 'suppliers_edit' %}active{% endif %}">
+                                        Supplier List
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{% url 'suppliers_create' %}"
+                                        class="{% if request.resolver_match.url_name == 'suppliers_create' %}active{% endif %}">
+                                        Add Supplier
+                                    </a>
+                                </li>
                             </ul>
                         </li>
                         <li class="submenu">

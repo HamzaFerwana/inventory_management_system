@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Supplier{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title">
+        <h4>Edit Supplier</h4>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post" action="{% url 'suppliers_edit' supplier.id %}" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            {% if errors %}
+            <div class="alert alert-danger" role="alert">
+                <ul class="mb-0">
+                    {% for error in errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <div class="row">
+                <div class="col-lg-3 col-sm-6 col-12">
+                    <div class="form-group">
+                        <label for="id_name">Supplier Name <span class="text-danger">*</span></label>
+                        <input type="text" id="id_name" name="name" class="form-control"
+                            value="{{ old.name|default_if_none:'' }}" placeholder="Enter supplier name" required>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-sm-6 col-12">
+                    <div class="form-group">
+                        <label for="id_email">Email</label>
+                        <input type="email" id="id_email" name="email" class="form-control"
+                            value="{{ old.email|default_if_none:'' }}" placeholder="Enter email">
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-sm-6 col-12">
+                    <div class="form-group">
+                        <label for="id_phone">Phone</label>
+                        <input type="text" id="id_phone" name="phone" class="form-control"
+                            value="{{ old.phone|default_if_none:'' }}" placeholder="Enter phone number">
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-sm-6 col-12">
+                    <div class="form-group">
+                        <label for="id_country">Country</label>
+                        <input type="text" id="id_country" name="country" class="form-control"
+                            value="{{ old.country|default_if_none:'' }}" placeholder="Enter country">
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-sm-6 col-12">
+                    <div class="form-group">
+                        <label for="id_city">City</label>
+                        <input type="text" id="id_city" name="city" class="form-control"
+                            value="{{ old.city|default_if_none:'' }}" placeholder="Enter city">
+                    </div>
+                </div>
+
+                <div class="col-lg-9 col-12">
+                    <div class="form-group">
+                        <label for="id_address">Address</label>
+                        <input type="text" id="id_address" name="address" class="form-control"
+                            value="{{ old.address|default_if_none:'' }}" placeholder="Enter address">
+                    </div>
+                </div>
+
+                <div class="col-lg-12 col-sm-12 col-12">
+                    <div class="form-group">
+                        <label for="id_description">Description</label>
+                        <textarea class="form-control" id="id_description" name="description"
+                            placeholder="Enter description">{{ old.description|default_if_none:'' }}</textarea>
+                    </div>
+                </div>
+
+                <div class="col-lg-12 col-sm-12 col-12">
+                    <div class="form-group">
+                        <label for="id_avatar">Avatar</label>
+                        <input type="file" id="id_avatar" name="avatar" class="form-control" accept="image/*">
+
+                        {% if supplier.avatar %}
+                        <div style="margin-top:10px;">
+                            <img src="{{ supplier.avatar.url }}" alt="{{ supplier.name }}"
+                                style="width:120px;height:120px;object-fit:cover;border-radius:4px;">
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="col-lg-12">
+                    <button type="submit" class="btn btn-submit me-2">Update</button>
+                    <a href="{% url 'suppliers_index' %}" class="btn btn-cancel">Cancel</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

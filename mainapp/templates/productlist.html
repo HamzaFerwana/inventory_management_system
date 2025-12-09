@@ -77,10 +77,6 @@
                             <a href="javascript:void(0);" class="product-img">
                                 <img src="{{ product.main_image.url }}" alt="{{ product.name }}">
                             </a>
-                            {% else %}
-                            <a href="javascript:void(0);" class="product-img">
-                                <img src="{% static 'img/product/default-product.jpg' %}" alt="{{ product.name }}">
-                            </a>
                             {% endif %}
                             <a href="javascript:void(0);">
                                 {{ product.name }}

@@ -85,4 +85,8 @@ urlpatterns = [
     path("expenses/create/", views.expense_create, name="expenses_create"),
     path("expenses/<int:pk>/edit/", views.expense_edit, name="expenses_edit"),
     path("expenses/<int:pk>/delete/", views.expense_delete, name="expenses_delete"),
+    path("suppliers/", views.suppliers_index, name="suppliers_index"),
+    path("suppliers/create/", views.supplier_create, name="suppliers_create"),
+    path("suppliers/<int:pk>/edit/", views.supplier_edit, name="suppliers_edit"),
+    path("suppliers/<int:pk>/delete/", views.supplier_delete, name="suppliers_delete"),
 ]

@@ -1,7 +1,15 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.contrib import messages
-from .models import Category, SubCategory, Product, Customer, ExpenseCategory, Expense
+from .models import (
+    Category,
+    SubCategory,
+    Product,
+    Customer,
+    ExpenseCategory,
+    Expense,
+    Supplier,
+)
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -437,7 +445,7 @@ def products_delete(request, pk):
 
 def register(request):
     if request.user.is_authenticated:
-        return redirect("categories_index")
+        return redirect("index")
     return render(request, "register.html")
 
 
@@ -475,14 +483,14 @@ def register_data(request):
             password=password,
         )
         login(request, user)
-        return redirect("categories_index")
+        return redirect("index")
 
     return redirect("register")
 
 
 def login_view(request):
     if request.user.is_authenticated:
-        return redirect("categories_index")
+        return redirect("index")
 
     if request.method == "POST":
         email = request.POST.get("email", "").strip()
@@ -498,7 +506,7 @@ def login_view(request):
 
         if user is not None:
             login(request, user)
-            return redirect("categories_index")
+            return redirect("index")
         else:
             return render(
                 request, "login.html", {"error": "Invalid email or password."}
@@ -512,7 +520,7 @@ def logout_view(request):
     if request.method == "POST":
         logout(request)
         return redirect("login")
-    return redirect("categories_index")
+    return redirect("index")
 
 
 @login_required
@@ -1235,3 +1243,141 @@ def expense_delete(request, pk):
     expense.delete()
     messages.success(request, "Expense deleted successfully.")
     return redirect("expenses_index")
+
+
+@login_required
+def suppliers_index(request):
+    suppliers = Supplier.objects.order_by("name")
+    return render(request, "suppliers/list.html", {"suppliers": suppliers})
+
+
+@login_required
+def supplier_create(request):
+    errors = []
+    old = {}
+
+    if request.method == "POST":
+        name = request.POST.get("name", "").strip()
+        email = request.POST.get("email", "").strip()
+        phone = request.POST.get("phone", "").strip()
+        country = request.POST.get("country", "").strip()
+        city = request.POST.get("city", "").strip()
+        address = request.POST.get("address", "").strip()
+        description = request.POST.get("description", "").strip()
+        avatar = request.FILES.get("avatar")
+
+        if not name:
+            errors.append("Name is required.")
+
+        if email and Supplier.objects.filter(email=email).exists():
+            errors.append("Email is already in use.")
+
+        if not errors:
+            Supplier.objects.create(
+                name=name,
+                email=email or None,
+                phone=phone or None,
+                country=country or None,
+                city=city or None,
+                address=address or None,
+                description=description or None,
+                avatar=avatar,
+            )
+            messages.success(request, "Supplier created successfully!")
+            return redirect("suppliers_index")
+
+        old = {
+            "name": name,
+            "email": email,
+            "phone": phone,
+            "country": country,
+            "city": city,
+            "address": address,
+            "description": description,
+        }
+
+    context = {
+        "errors": errors,
+        "old": old,
+    }
+    return render(request, "suppliers/add.html", context)
+
+
+@login_required
+def supplier_edit(request, pk):
+    supplier = get_object_or_404(Supplier, pk=pk)
+    errors = []
+
+    if request.method == "POST":
+        name = request.POST.get("name", "").strip()
+        email = request.POST.get("email", "").strip()
+        phone = request.POST.get("phone", "").strip()
+        country = request.POST.get("country", "").strip()
+        city = request.POST.get("city", "").strip()
+        address = request.POST.get("address", "").strip()
+        description = request.POST.get("description", "").strip()
+        avatar = request.FILES.get("avatar")
+
+        if not name:
+            errors.append("Name is required.")
+
+        if (
+            email
+            and Supplier.objects.filter(email=email).exclude(pk=supplier.pk).exists()
+        ):
+            errors.append("Email is already in use.")
+
+        if not errors:
+            supplier.name = name
+            supplier.email = email or None
+            supplier.phone = phone or None
+            supplier.country = country or None
+            supplier.city = city or None
+            supplier.address = address or None
+            supplier.description = description or None
+            if avatar:
+                supplier.avatar = avatar
+            supplier.save()
+            messages.success(request, "Supplier updated successfully!")
+            return redirect("suppliers_index")
+
+        old = {
+            "name": name,
+            "email": email,
+            "phone": phone,
+            "country": country,
+            "city": city,
+            "address": address,
+            "description": description,
+        }
+    else:
+        old = {
+            "name": supplier.name,
+            "email": supplier.email or "",
+            "phone": supplier.phone or "",
+            "country": supplier.country or "",
+            "city": supplier.city or "",
+            "address": supplier.address or "",
+            "description": supplier.description or "",
+        }
+
+    context = {
+        "errors": errors,
+        "old": old,
+        "supplier": supplier,
+    }
+    return render(request, "suppliers/edit.html", context)
+
+
+@login_required
+def supplier_delete(request, pk):
+    supplier = get_object_or_404(Supplier, pk=pk)
+
+    if request.method == "POST":
+        supplier.delete()
+        messages.success(request, "Supplier deleted successfully.")
+        return redirect("suppliers_index")
+
+    supplier.delete()
+    messages.success(request, "Supplier deleted successfully.")
+    return redirect("suppliers_index")
