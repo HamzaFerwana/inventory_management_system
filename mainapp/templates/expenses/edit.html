@@ -43,8 +43,12 @@
                 <div class="col-lg-4 col-sm-6 col-12">
                     <div class="form-group">
                         <label for="id_date">Date</label>
-                        <input type="date" name="date" id="id_date" class="form-control"
-                            value="{{ old.date|default_if_none:'' }}">
+                       <input type="date"
+       name="date"
+       id="id_date"
+       class="form-control"
+       value="{{ old.date|date:'Y-m-d' }}">
+
                     </div>
                 </div>
 
