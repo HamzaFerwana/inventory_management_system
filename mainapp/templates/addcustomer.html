@@ -1,74 +1,78 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Add Customer{% endblock %}
+{% block title %}{% if customer %}Edit Customer{% else %}Add Customer{% endif %}{% endblock %}
 
 {% block content %}
 <div class="page-header">
 <div class="page-title">
 <h4>Customer Management</h4>
-<h6>Add/Update Customer</h6>
+<h6>{% if customer %}Update Customer{% else %}Add New Customer{% endif %}</h6>
 </div>
 </div>
 
+{% if errors %}
+<div class="alert alert-danger" role="alert">
+<ul class="mb-0">
+{% for error in errors %}
+<li>{{ error }}</li>
+{% endfor %}
+</ul>
+</div>
+{% endif %}
+
 <div class="card">
 <div class="card-body">
+<form method="POST">
+{% csrf_token %}
 <div class="row">
 <div class="col-lg-3 col-sm-6 col-12">
 <div class="form-group">
-<label>Customer Name</label>
-<input type="text">
+<label>Customer Name <span style="color:red;">*</span></label>
+<input type="text" name="name" value="{{ old.name }}" placeholder="Enter customer name" required>
 </div>
 </div>
 <div class="col-lg-3 col-sm-6 col-12">
 <div class="form-group">
-<label>Email</label>
-<input type="text">
+<label>Email <span style="color:red;">*</span></label>
+<input type="email" name="email" value="{{ old.email }}" placeholder="Enter email" required>
 </div>
 </div>
 <div class="col-lg-3 col-sm-6 col-12">
 <div class="form-group">
-<label>Phone</label>
-<input type="text">
+<label>Phone <span style="color:red;">*</span></label>
+<input type="text" name="phone" value="{{ old.phone }}" placeholder="Enter phone number" required>
 </div>
 </div>
 <div class="col-lg-3 col-sm-6 col-12">
 <div class="form-group">
-<label>Choose Country</label>
-<select class="select">
-<option>Choose Country</option>
-<option>India</option>
-<option>USA</option>
-</select>
+<label>Country</label>
+<input type="text" name="country" value="{{ old.country }}" placeholder="Enter country">
 </div>
 </div>
 <div class="col-lg-3 col-sm-6 col-12">
 <div class="form-group">
 <label>City</label>
-<select class="select">
-<option>Choose City</option>
-<option>City 1</option>
-<option>City 2</option>
-</select>
+<input type="text" name="city" value="{{ old.city }}" placeholder="Enter city">
 </div>
 </div>
 <div class="col-lg-9 col-12">
 <div class="form-group">
 <label>Address</label>
-<input type="text">
+<input type="text" name="address" value="{{ old.address }}" placeholder="Enter address">
 </div>
 </div>
 <div class="col-lg-12">
 <div class="form-group">
 <label>Description</label>
-<textarea class="form-control"></textarea>
+<textarea class="form-control" name="description" placeholder="Enter description">{{ old.description }}</textarea>
 </div>
 </div>
 <div class="col-lg-12">
 <div class="form-group">
-<label> Avatar</label>
+<label>Avatar</label>
 <div class="image-upload">
-<input type="file">
+<input type="file" name="avatar" accept="image/*">
 <div class="image-uploads">
 <img src="{% static 'img/icons/upload.svg' %}" alt="img">
 <h4>Drag and drop a file to upload</h4>
@@ -77,10 +81,11 @@
 </div>
 </div>
 <div class="col-lg-12">
-<a href="javascript:void(0);" class="btn btn-submit me-2">Submit</a>
-<a href="javascript:void(0);" class="btn btn-cancel">Cancel</a>
+<button type="submit" class="btn btn-submit me-2">Submit</button>
+<a href="{% url 'customers_index' %}" class="btn btn-cancel">Cancel</a>
 </div>
 </div>
+</form>
 </div>
 </div>
 

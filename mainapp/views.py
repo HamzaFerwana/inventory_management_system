@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from .models import Category, SubCategory, Product
+from .models import Category, SubCategory, Product, Customer
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -483,3 +483,151 @@ def logout_view(request):
         logout(request)
         return redirect("login")
     return redirect("categories_index")
+
+
+@login_required
+def customers_index(request):
+    customers = Customer.objects.all().order_by("name")
+    return render(request, "customerlist.html", {"customers": customers})
+
+
+@login_required
+def customer_create(request):
+    errors = []
+    if request.method == "POST":
+        name = request.POST.get("name", "").strip()
+        email = request.POST.get("email", "").strip()
+        phone = request.POST.get("phone", "").strip()
+        country = request.POST.get("country", "").strip()
+        city = request.POST.get("city", "").strip()
+        address = request.POST.get("address", "").strip()
+        description = request.POST.get("description", "").strip()
+        avatar = request.FILES.get("avatar")
+
+        if not name:
+            errors.append("Customer name is required.")
+        if not email:
+            errors.append("Email is required.")
+        if not phone:
+            errors.append("Phone is required.")
+
+        if email and Customer.objects.filter(email=email).exists():
+            errors.append("This email is already in use.")
+
+        if not errors:
+            Customer.objects.create(
+                name=name,
+                email=email,
+                phone=phone,
+                country=country or None,
+                city=city or None,
+                address=address or None,
+                description=description or None,
+                avatar=avatar,
+            )
+            messages.success(request, "Customer created successfully!")
+            return redirect("customers_index")
+
+        old = {
+            "name": name,
+            "email": email,
+            "phone": phone,
+            "country": country,
+            "city": city,
+            "address": address,
+            "description": description,
+        }
+    else:
+        old = {}
+
+    context = {
+        "errors": errors,
+        "old": old,
+    }
+    return render(request, "addcustomer.html", context)
+
+
+@login_required
+def customer_edit(request, pk):
+    customer = get_object_or_404(Customer, pk=pk)
+    errors = []
+
+    if request.method == "POST":
+        name = request.POST.get("name", "").strip()
+        email = request.POST.get("email", "").strip()
+        phone = request.POST.get("phone", "").strip()
+        country = request.POST.get("country", "").strip()
+        city = request.POST.get("city", "").strip()
+        address = request.POST.get("address", "").strip()
+        description = request.POST.get("description", "").strip()
+        avatar = request.FILES.get("avatar")
+
+        if not name:
+            errors.append("Customer name is required.")
+        if not email:
+            errors.append("Email is required.")
+        if not phone:
+            errors.append("Phone is required.")
+
+        if (
+            email
+            and Customer.objects.filter(email=email)
+            .exclude(pk=customer.pk)
+            .exists()
+        ):
+            errors.append("This email is already in use.")
+
+        if not errors:
+            customer.name = name
+            customer.email = email
+            customer.phone = phone
+            customer.country = country or None
+            customer.city = city or None
+            customer.address = address or None
+            customer.description = description or None
+            if avatar:
+                customer.avatar = avatar
+            customer.save()
+            messages.success(request, "Customer updated successfully!")
+            return redirect("customers_index")
+
+        old = {
+            "name": name,
+            "email": email,
+            "phone": phone,
+            "country": country,
+            "city": city,
+            "address": address,
+            "description": description,
+        }
+    else:
+        old = {
+            "name": customer.name,
+            "email": customer.email,
+            "phone": customer.phone,
+            "country": customer.country or "",
+            "city": customer.city or "",
+            "address": customer.address or "",
+            "description": customer.description or "",
+        }
+
+    context = {
+        "errors": errors,
+        "old": old,
+        "customer": customer,
+    }
+    return render(request, "addcustomer.html", context)
+
+
+@login_required
+def customer_delete(request, pk):
+    customer = get_object_or_404(Customer, pk=pk)
+
+    if request.method == "POST":
+        customer.delete()
+        messages.success(request, "Customer deleted successfully.")
+        return redirect("customers_index")
+
+    customer.delete()
+    messages.success(request, "Customer deleted successfully.")
+    return redirect("customers_index")
