@@ -89,4 +89,8 @@ urlpatterns = [
     path("suppliers/create/", views.supplier_create, name="suppliers_create"),
     path("suppliers/<int:pk>/edit/", views.supplier_edit, name="suppliers_edit"),
     path("suppliers/<int:pk>/delete/", views.supplier_delete, name="suppliers_delete"),
+    path("quotations/", views.quotations_index, name="quotations_index"),
+    path("quotations/create/", views.quotation_create, name="quotations_create"),
+    path("quotations/<int:pk>/edit/", views.quotation_edit, name="quotations_edit"),
+    path("quotations/<int:pk>/delete/", views.quotation_delete, name="quotations_delete"),
 ]

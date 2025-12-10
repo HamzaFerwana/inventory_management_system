@@ -115,3 +115,51 @@ class Supplier(models.Model):
     avatar = models.ImageField(upload_to="suppliers/", null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+
+class Quotation(models.Model):
+    STATUS_CHOICES = [
+        ("pending", "Pending"),
+        ("sent", "Sent"),
+        ("ordered", "Ordered"),
+        ("accepted", "Accepted"),
+        ("rejected", "Rejected"),
+    ]
+
+    reference = models.CharField(max_length=100, unique=True)
+    product = models.ForeignKey(
+        "Product",
+        on_delete=models.PROTECT,
+        related_name="quotations",
+    )
+    customer = models.ForeignKey(
+        "Customer",
+        on_delete=models.PROTECT,
+        related_name="quotations",
+    )
+    quantity = models.PositiveIntegerField(default=1)
+    unit_price = models.DecimalField(max_digits=12, decimal_places=2)
+    discount_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    tax_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
+    notes = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def get_subtotal(self):
+        return self.quantity * self.unit_price
+
+    def get_discount_amount(self):
+        return (self.get_subtotal() * self.discount_percentage) / 100
+
+    def get_subtotal_after_discount(self):
+        return self.get_subtotal() - self.get_discount_amount()
+
+    def get_tax_amount(self):
+        return (self.get_subtotal_after_discount() * self.tax_percentage) / 100
+
+    def get_grand_total(self):
+        return self.get_subtotal_after_discount() + self.get_tax_amount()

@@ -9,6 +9,7 @@ from .models import (
     ExpenseCategory,
     Expense,
     Supplier,
+    Quotation,
 )
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
@@ -1248,7 +1249,7 @@ def expense_delete(request, pk):
 @login_required
 def suppliers_index(request):
     suppliers = Supplier.objects.order_by("name")
-    return render(request, "suppliers/list.html", {"suppliers": suppliers})
+    return render(request, "supplierlist.html", {"suppliers": suppliers})
 
 
 @login_required
@@ -1300,7 +1301,7 @@ def supplier_create(request):
         "errors": errors,
         "old": old,
     }
-    return render(request, "suppliers/add.html", context)
+    return render(request, "addsupplier.html", context)
 
 
 @login_required
@@ -1366,7 +1367,7 @@ def supplier_edit(request, pk):
         "old": old,
         "supplier": supplier,
     }
-    return render(request, "suppliers/edit.html", context)
+    return render(request, "addsupplier.html", context)
 
 
 @login_required
@@ -1381,3 +1382,239 @@ def supplier_delete(request, pk):
     supplier.delete()
     messages.success(request, "Supplier deleted successfully.")
     return redirect("suppliers_index")
+
+
+@login_required
+def quotations_index(request):
+    quotations = (
+        Quotation.objects.select_related("product", "customer")
+        .order_by("-created_at")
+    )
+    return render(request, "quotationList.html", {"quotations": quotations})
+
+
+@login_required
+def quotation_create(request):
+    errors = []
+    products = Product.objects.order_by("name")
+    customers = Customer.objects.order_by("name")
+
+    if request.method == "POST":
+        reference = request.POST.get("reference", "").strip()
+        product_id = request.POST.get("product_id")
+        customer_id = request.POST.get("customer_id")
+        quantity_raw = request.POST.get("quantity", "1").strip()
+        unit_price_raw = request.POST.get("unit_price", "0").strip()
+        discount_raw = request.POST.get("discount_percentage", "0").strip()
+        tax_raw = request.POST.get("tax_percentage", "0").strip()
+        status = request.POST.get("status", "pending").strip()
+        notes = request.POST.get("notes", "").strip()
+
+        product = Product.objects.filter(pk=product_id).first()
+        customer = Customer.objects.filter(pk=customer_id).first()
+
+        try:
+            quantity = int(quantity_raw)
+            if quantity <= 0:
+                raise ValueError
+        except ValueError:
+            errors.append("Quantity must be a positive integer.")
+            quantity = None
+
+        try:
+            unit_price = Decimal(unit_price_raw)
+        except Exception:
+            errors.append("Unit price must be a number.")
+            unit_price = None
+
+        try:
+            discount_percentage = Decimal(discount_raw or 0)
+        except Exception:
+            errors.append("Discount must be a number.")
+            discount_percentage = None
+
+        try:
+            tax_percentage = Decimal(tax_raw or 0)
+        except Exception:
+            errors.append("Tax must be a number.")
+            tax_percentage = None
+
+        if not reference:
+            errors.append("Reference is required.")
+        elif Quotation.objects.filter(reference=reference).exists():
+            errors.append("Reference must be unique.")
+
+        if not product:
+            errors.append("Product is required.")
+
+        if not customer:
+            errors.append("Customer is required.")
+
+        if status and status not in dict(Quotation.STATUS_CHOICES):
+            errors.append("Invalid status selected.")
+
+        if not errors:
+            Quotation.objects.create(
+                reference=reference,
+                product=product,
+                customer=customer,
+                quantity=quantity,
+                unit_price=unit_price,
+                discount_percentage=discount_percentage or 0,
+                tax_percentage=tax_percentage or 0,
+                status=status or "pending",
+                notes=notes or None,
+            )
+            messages.success(request, "Quotation created successfully!")
+            return redirect("quotations_index")
+
+        old = {
+            "reference": reference,
+            "product_id": product_id,
+            "customer_id": customer_id,
+            "quantity": quantity_raw,
+            "unit_price": unit_price_raw,
+            "discount_percentage": discount_raw,
+            "tax_percentage": tax_raw,
+            "status": status,
+            "notes": notes,
+        }
+    else:
+        old = {"quantity": "1", "status": "pending"}
+
+    context = {
+        "errors": errors,
+        "old": old,
+        "products": products,
+        "customers": customers,
+        "status_choices": Quotation.STATUS_CHOICES,
+    }
+    return render(request, "addquotation.html", context)
+
+
+@login_required
+def quotation_edit(request, pk):
+    quotation = get_object_or_404(Quotation, pk=pk)
+    errors = []
+    products = Product.objects.order_by("name")
+    customers = Customer.objects.order_by("name")
+
+    if request.method == "POST":
+        reference = request.POST.get("reference", "").strip()
+        product_id = request.POST.get("product_id")
+        customer_id = request.POST.get("customer_id")
+        quantity_raw = request.POST.get("quantity", "1").strip()
+        unit_price_raw = request.POST.get("unit_price", "0").strip()
+        discount_raw = request.POST.get("discount_percentage", "0").strip()
+        tax_raw = request.POST.get("tax_percentage", "0").strip()
+        status = request.POST.get("status", quotation.status).strip()
+        notes = request.POST.get("notes", "").strip()
+
+        product = Product.objects.filter(pk=product_id).first()
+        customer = Customer.objects.filter(pk=customer_id).first()
+
+        try:
+            quantity = int(quantity_raw)
+            if quantity <= 0:
+                raise ValueError
+        except ValueError:
+            errors.append("Quantity must be a positive integer.")
+            quantity = None
+
+        try:
+            unit_price = Decimal(unit_price_raw)
+        except Exception:
+            errors.append("Unit price must be a number.")
+            unit_price = None
+
+        try:
+            discount_percentage = Decimal(discount_raw or 0)
+        except Exception:
+            errors.append("Discount must be a number.")
+            discount_percentage = None
+
+        try:
+            tax_percentage = Decimal(tax_raw or 0)
+        except Exception:
+            errors.append("Tax must be a number.")
+            tax_percentage = None
+
+        if not reference:
+            errors.append("Reference is required.")
+        elif (
+            Quotation.objects.filter(reference=reference)
+            .exclude(pk=quotation.pk)
+            .exists()
+        ):
+            errors.append("Reference must be unique.")
+
+        if not product:
+            errors.append("Product is required.")
+
+        if not customer:
+            errors.append("Customer is required.")
+
+        if status and status not in dict(Quotation.STATUS_CHOICES):
+            errors.append("Invalid status selected.")
+
+        if not errors:
+            quotation.reference = reference
+            quotation.product = product
+            quotation.customer = customer
+            quotation.quantity = quantity
+            quotation.unit_price = unit_price
+            quotation.discount_percentage = discount_percentage or 0
+            quotation.tax_percentage = tax_percentage or 0
+            quotation.status = status or quotation.status
+            quotation.notes = notes or None
+            quotation.save()
+            messages.success(request, "Quotation updated successfully!")
+            return redirect("quotations_index")
+
+        old = {
+            "reference": reference,
+            "product_id": product_id,
+            "customer_id": customer_id,
+            "quantity": quantity_raw,
+            "unit_price": unit_price_raw,
+            "discount_percentage": discount_raw,
+            "tax_percentage": tax_raw,
+            "status": status,
+            "notes": notes,
+        }
+    else:
+        old = {
+            "reference": quotation.reference,
+            "product_id": quotation.product_id,
+            "customer_id": quotation.customer_id,
+            "quantity": quotation.quantity,
+            "unit_price": quotation.unit_price,
+            "discount_percentage": quotation.discount_percentage,
+            "tax_percentage": quotation.tax_percentage,
+            "status": quotation.status,
+            "notes": quotation.notes or "",
+        }
+
+    context = {
+        "errors": errors,
+        "old": old,
+        "products": products,
+        "customers": customers,
+        "quotation": quotation,
+        "status_choices": Quotation.STATUS_CHOICES,
+    }
+    return render(request, "addquotation.html", context)
+
+
+@login_required
+def quotation_delete(request, pk):
+    quotation = get_object_or_404(Quotation, pk=pk)
+
+    if request.method == "POST":
+        quotation.delete()
+        messages.success(request, "Quotation deleted successfully.")
+        return redirect("quotations_index")
+
+    quotation.delete()
+    messages.success(request, "Quotation deleted successfully.")
+    return redirect("quotations_index")
