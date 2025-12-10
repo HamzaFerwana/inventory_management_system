@@ -11,16 +11,14 @@ const MAX_ROWS = 6, COLS = 5;
     tiles.forEach(tile => {
         tile.classList.add("shake");
 
-        // Temporary shake effect only — do NOT override Wordle colors
         tile.dataset.oldClass = tile.className;
 
-        tile.style.backgroundColor = "#dc2626"; // temporary red
+        tile.style.backgroundColor = "#dc2626"; 
         tile.style.border = "2px solid black";
 
         setTimeout(() => {
             tile.classList.remove("shake");
 
-            // Restore original Wordle states (correct / present / absent)
             tile.className = tile.dataset.oldClass;
             tile.style.backgroundColor = "";
             tile.style.border = "";
@@ -108,7 +106,7 @@ const MAX_ROWS = 6, COLS = 5;
             catch { return false; }
         }
 
-        async function validatedSubmit() {
+       async function validatedSubmit() {
     if (col < COLS) {
         toastShow("Word is incomplete");
         toggleShakeRow();
@@ -116,20 +114,23 @@ const MAX_ROWS = 6, COLS = 5;
     }
 
     const guess = grid[row].join("").toLowerCase();
-    const valid = await isValidWord(guess);
 
-    // ❌ If invalid → shake + toast + EXIT (do NOT call checkGuess)
-    if (!valid) {
-        toastShow("Word not in dictionary!");
-        toggleShakeRow();
-
-    
-
-        return; // <-- IMPORTANT: STOP HERE
+    // Block words like "fffff", "aaaaa", etc.
+    if (/^([a-zA-Z])\1{4}$/.test(guess)) {
+        toastShow("Invalid word!");
+        toggleShakeRow();   // <-- shake row here
+        return;
     }
 
-    // If valid → continue to coloring logic
- checkGuess(grid[row].join("").toUpperCase());
+    const valid = await isValidWord(guess);
+
+    if (!valid) {
+        toastShow("Word not in dictionary!");
+        toggleShakeRow();   // <-- shake row here
+        return;
+    }
+
+    checkGuess(grid[row].join("").toUpperCase());
 }
 
 
