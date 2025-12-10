@@ -1,57 +1,62 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
-    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+
+    <link rel="stylesheet" href="{% static 'auth-assets/style2.css' %}">
+    <link rel="icon" href="{% static 'auth-assets/img/logo.png' %}" type="image/png">
 </head>
+<body>
+    <div class="login-page">
+        <div class="login-card">
+            <h2>Login</h2>
 
-<body class="bg-light">
-    <div class="container py-5">
-        <div class="row justify-content-center">
-            <div class="col-md-5">
-                <div class="card shadow-sm">
-                    <div class="card-header text-center">
-                        <h4>Login</h4>
-                    </div>
-                    <div class="card-body">
-                        {% if error %}
-                        <div class="alert alert-danger">
-                            {{ error }}
-                        </div>
-                        {% endif %}
-
-                        <form method="post" action="{% url 'login' %}">
-                            {% csrf_token %}
-                            <div class="mb-3">
-                                <label for="id_email" class="form-label">Email</label>
-                                <input type="email" name="email" id="id_email" class="form-control" required>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="id_password" class="form-label">Password</label>
-                                <input type="password" name="password" id="id_password" class="form-control" required>
-                            </div>
-
-                            <div class="d-grid mb-3">
-                                <button type="submit" class="btn btn-primary">Login</button>
-                            </div>
-
-                            <div class="text-center">
-                                <small>
-                                    Don’t have an account?
-                                    <a href="{% url 'register' %}">Register</a>
-                                </small>
-                            </div>
-                        </form>
-                    </div>
+            {% if error %}
+                <div class="error-message">
+                    {{ error }}
                 </div>
-            </div>
+            {% endif %}
+
+            <form class="login-form" action="" method="post">
+                {% csrf_token %}
+
+                <label class="field">
+                    <span class="label-text">Email</span>
+                    <div class="input-wrapper">
+                        <img src="{% static 'auth-assets/img/user_input.png' %}" alt="email" class="input-icon">
+                        <input
+                            type="email"
+                            name="email"
+                            placeholder="you@example.com"
+                            required
+                        >
+                    </div>
+                </label>
+
+                <label class="field">
+                    <span class="label-text">Password</span>
+                    <div class="input-wrapper">
+                        <img src="{% static 'auth-assets/img/pass_input.png' %}" alt="password" class="input-icon">
+                        <input
+                            type="password"
+                            name="password"
+                            placeholder="Your password"
+                            required
+                        >
+                    </div>
+                </label>
+
+                <button type="submit" class="btn">Login</button>
+
+                <p class="signup">
+                    Don't have an account?
+                    <a href="{% url 'register' %}">Sign up</a>
+                </p>
+            </form>
         </div>
     </div>
-    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
 </body>
-
 </html>

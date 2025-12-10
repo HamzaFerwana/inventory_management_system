@@ -32,7 +32,6 @@ urlpatterns = [
     path("customers/<int:pk>/edit/", views.customer_edit, name="customers_edit"),
     path("customers/<int:pk>/delete/", views.customer_delete, name="customers_delete"),
     path("register/", views.register, name="register"),
-    path("register_data/", views.register_data, name="register_data"),
     path("login/", views.login_view, name="login"),
     path("logout/", views.logout_view, name="logout"),
     path(

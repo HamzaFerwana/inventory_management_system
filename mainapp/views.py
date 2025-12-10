@@ -28,24 +28,19 @@ from datetime import datetime
 from django.db import transaction
 
 
-
 MONEY_QUANT = Decimal("0.01")
 
 
 def compute_purchase_totals(quantity, unit_price, discount_pct, tax_pct):
 
-    subtotal_base = unit_price * quantity  
-
+    subtotal_base = unit_price * quantity
 
     discount_amount = subtotal_base * (discount_pct / Decimal("100"))
-
 
     taxable_base = subtotal_base
     tax_amount = taxable_base * (tax_pct / Decimal("100"))
 
-
     line_total = subtotal_base - discount_amount + tax_amount
-
 
     discount_amount = discount_amount.quantize(MONEY_QUANT, rounding=ROUND_HALF_UP)
     tax_amount = tax_amount.quantize(MONEY_QUANT, rounding=ROUND_HALF_UP)
@@ -475,16 +470,15 @@ def products_delete(request, pk):
 def register(request):
     if request.user.is_authenticated:
         return redirect("index")
-    return render(request, "register.html")
 
+    errors = []
+    username = ""
+    email = ""
 
-def register_data(request):
     if request.method == "POST":
         username = request.POST.get("username", "").strip()
         email = request.POST.get("email", "").strip()
         password = request.POST.get("password", "")
-
-        errors = []
 
         if not username or not email or not password:
             errors.append("All fields are required.")
@@ -498,35 +492,37 @@ def register_data(request):
         if len(password) < 8:
             errors.append("Password must be at least 8 characters long.")
 
-        if errors:
-            context = {
-                "errors": errors,
-                "username": username,
-                "email": email,
-            }
-            return render(request, "register.html", context)
+        if not errors:
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password,
+            )
+            login(request, user)
+            return redirect("index")
 
-        user = User.objects.create_user(
-            username=username,
-            email=email,
-            password=password,
-        )
-        login(request, user)
-        return redirect("index")
-
-    return redirect("register")
+    context = {
+        "errors": errors,
+        "username": username,
+        "email": email,
+    }
+    return render(request, "register.html", context)
 
 
 def login_view(request):
     if request.user.is_authenticated:
         return redirect("index")
 
+    error = None
+
     if request.method == "POST":
         email = request.POST.get("email", "").strip()
         password = request.POST.get("password", "")
 
         user = None
-        if email and password:
+        if not email or not password:
+            error = "Email and password are required."
+        else:
             try:
                 u = User.objects.get(email=email)
                 user = authenticate(request, username=u.username, password=password)
@@ -537,9 +533,9 @@ def login_view(request):
             login(request, user)
             return redirect("index")
         else:
-            return render(
-                request, "login.html", {"error": "Invalid email or password."}
-            )
+            if error is None:
+                error = "Invalid email or password."
+            return render(request, "login.html", {"error": error})
 
     return render(request, "login.html")
 
@@ -1777,7 +1773,6 @@ def purchase_create(request):
         tax_rate_val = to_decimal(tax_rate, "Tax rate", Decimal("0"), Decimal("100"))
         paid_amount_val = to_decimal(paid_amount, "Paid amount", Decimal("0"))
 
-        
         discount_amt, tax_amount_val, line_total_val = compute_purchase_totals(
             quantity_val,
             unit_price_val,
@@ -1785,11 +1780,9 @@ def purchase_create(request):
             tax_rate_val,
         )
 
-       
         if paid_amount_val > line_total_val:
             errors.append("Paid amount cannot exceed the line total.")
 
- 
         if paid_amount_val == 0:
             payment_status = Purchase.PaymentStatusChoices.UNPAID
         elif paid_amount_val < line_total_val:
@@ -1806,10 +1799,10 @@ def purchase_create(request):
                     purchase_date=purchase_date,
                     quantity=quantity_val,
                     unit_price=unit_price_val,
-                    discount=discount_val,     
-                    tax_rate=tax_rate_val,      
-                    tax_amount=tax_amount_val,  
-                    line_total=line_total_val,  
+                    discount=discount_val,
+                    tax_rate=tax_rate_val,
+                    tax_amount=tax_amount_val,
+                    line_total=line_total_val,
                     status=status,
                     paid_amount=paid_amount_val,
                     description=description or None,
@@ -1843,7 +1836,6 @@ def purchase_create(request):
         "products": products,
     }
     return render(request, "purchases/add.html", context)
-
 
 
 @login_required
@@ -1917,7 +1909,6 @@ def purchase_edit(request, pk):
         tax_rate_val = to_decimal(tax_rate, "Tax rate", Decimal("0"), Decimal("100"))
         paid_amount_val = to_decimal(paid_amount, "Paid amount", Decimal("0"))
 
-        
         discount_amt, tax_amount_val, line_total_val = compute_purchase_totals(
             quantity_val,
             unit_price_val,
@@ -1989,9 +1980,6 @@ def purchase_edit(request, pk):
         "products": products,
     }
     return render(request, "purchases/edit.html", context)
-
-
-
 
 
 @login_required
