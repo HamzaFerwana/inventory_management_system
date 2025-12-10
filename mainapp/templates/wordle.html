@@ -1,0 +1,38 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Wordle — Word Guessing Game</title>
+    <link rel="stylesheet" href="{% static 'wordle-assets\css\style.css' %}" />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
+    <script src="{% static 'wordle-assets/js/script.js' %}" defer></script>
+</head>
+
+<body>
+    <div class="app" role="application" aria-label="Wordle Game">
+        <header>
+            <h1>Wordle — Guess a 5-Letter Word</h1>
+            <div class="footer">
+                You have 6 attempts. After each attempt, the letter will be colored: green for correct position, yellow
+                for correct letter in wrong position, gray for letter not in word.
+            </div>
+        </header>
+
+        <main>
+            <div id="board" class="board" aria-hidden="false"></div>
+            <div id="keyboard" class="keyboard" aria-hidden="false"></div>
+
+            <div style="display:flex;gap:12px;justify-content:center;margin-top:14px;">
+                <button id="btn-reset" class="key">Reset</button>
+                <button id="btn-reveal" class="key">Reveal Word</button>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast" class="toast" style="display:none"></div>
+</body>
+
+</html>

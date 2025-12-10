@@ -108,4 +108,5 @@ urlpatterns = [
         views.purchase_more_options,
         name="purchases_more_options",
     ),
+    path("game", views.wordle_view, name="game"),
 ]

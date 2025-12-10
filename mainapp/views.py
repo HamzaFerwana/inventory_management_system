@@ -2047,3 +2047,12 @@ def purchase_adjust_quantity(request):
             messages.success(request, "Product quantity decremented successfully!")
 
     return redirect("purchases_index")
+
+
+@login_required
+def wordle_view(request):
+
+    return render(
+        request,
+        "wordle.html",
+    )
