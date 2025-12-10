@@ -2,7 +2,7 @@
 *{box-sizing:border-box;margin:0;padding:0;font-family:'Poppins',system-ui,Segoe UI,Arial,sans-serif}
 html,body{height:100%}
 body{
-	background:#2b9edb;
+	background:#fe9f43;
 	min-height:100vh;
 	display:flex;
 	align-items:center;
@@ -90,13 +90,13 @@ body{
 	height:38px;
 	border-radius:8px;
 	border:0;
-	background:#3797D7;
+	background:#1b2950;
 	color:#fff;
 	font-weight:600;
 	cursor:pointer;
 	box-shadow:0 6px 12px rgba(43,158,219,0.18);
 	&:hover{
-		background:#4eafe4;
+		background:rgb(48, 106, 137);
 	}
 }
 
