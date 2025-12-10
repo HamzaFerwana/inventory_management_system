@@ -1248,32 +1248,47 @@ def expense_delete(request, pk):
 
 @login_required
 def suppliers_index(request):
+
     suppliers = Supplier.objects.order_by("name")
-    return render(request, "supplierlist.html", {"suppliers": suppliers})
+
+    return render(request, "suppliers/list.html", {"suppliers": suppliers})
 
 
 @login_required
 def supplier_create(request):
+
     errors = []
+
     old = {}
 
     if request.method == "POST":
+
         name = request.POST.get("name", "").strip()
+
         email = request.POST.get("email", "").strip()
+
         phone = request.POST.get("phone", "").strip()
+
         country = request.POST.get("country", "").strip()
+
         city = request.POST.get("city", "").strip()
+
         address = request.POST.get("address", "").strip()
+
         description = request.POST.get("description", "").strip()
+
         avatar = request.FILES.get("avatar")
 
         if not name:
+
             errors.append("Name is required.")
 
         if email and Supplier.objects.filter(email=email).exists():
+
             errors.append("Email is already in use.")
 
         if not errors:
+
             Supplier.objects.create(
                 name=name,
                 email=email or None,
@@ -1284,7 +1299,9 @@ def supplier_create(request):
                 description=description or None,
                 avatar=avatar,
             )
+
             messages.success(request, "Supplier created successfully!")
+
             return redirect("suppliers_index")
 
         old = {
@@ -1301,45 +1318,70 @@ def supplier_create(request):
         "errors": errors,
         "old": old,
     }
-    return render(request, "addsupplier.html", context)
+
+    return render(request, "suppliers/add.html", context)
 
 
 @login_required
 def supplier_edit(request, pk):
+
     supplier = get_object_or_404(Supplier, pk=pk)
+
     errors = []
 
     if request.method == "POST":
+
         name = request.POST.get("name", "").strip()
+
         email = request.POST.get("email", "").strip()
+
         phone = request.POST.get("phone", "").strip()
+
         country = request.POST.get("country", "").strip()
+
         city = request.POST.get("city", "").strip()
+
         address = request.POST.get("address", "").strip()
+
         description = request.POST.get("description", "").strip()
+
         avatar = request.FILES.get("avatar")
 
         if not name:
+
             errors.append("Name is required.")
 
         if (
             email
             and Supplier.objects.filter(email=email).exclude(pk=supplier.pk).exists()
         ):
+
             errors.append("Email is already in use.")
 
         if not errors:
+
             supplier.name = name
+
             supplier.email = email or None
+
             supplier.phone = phone or None
+
             supplier.country = country or None
+
             supplier.city = city or None
+
             supplier.address = address or None
+
             supplier.description = description or None
+
             if avatar:
+
                 supplier.avatar = avatar
+
             supplier.save()
+
             messages.success(request, "Supplier updated successfully!")
+
             return redirect("suppliers_index")
 
         old = {
@@ -1351,7 +1393,9 @@ def supplier_edit(request, pk):
             "address": address,
             "description": description,
         }
+
     else:
+
         old = {
             "name": supplier.name,
             "email": supplier.email or "",
@@ -1367,28 +1411,34 @@ def supplier_edit(request, pk):
         "old": old,
         "supplier": supplier,
     }
-    return render(request, "addsupplier.html", context)
+
+    return render(request, "suppliers/edit.html", context)
 
 
 @login_required
 def supplier_delete(request, pk):
+
     supplier = get_object_or_404(Supplier, pk=pk)
 
     if request.method == "POST":
+
         supplier.delete()
+
         messages.success(request, "Supplier deleted successfully.")
+
         return redirect("suppliers_index")
 
     supplier.delete()
+
     messages.success(request, "Supplier deleted successfully.")
+
     return redirect("suppliers_index")
 
 
 @login_required
 def quotations_index(request):
-    quotations = (
-        Quotation.objects.select_related("product", "customer")
-        .order_by("-created_at")
+    quotations = Quotation.objects.select_related("product", "customer").order_by(
+        "-created_at"
     )
     return render(request, "quotationList.html", {"quotations": quotations})
 
