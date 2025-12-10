@@ -10,11 +10,12 @@ from .models import (
     Expense,
     Supplier,
     Quotation,
+    Purchase,
 )
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 from reportlab.lib.pagesizes import letter, A4
 from reportlab.lib import colors
 from reportlab.lib.units import inch
@@ -24,6 +25,33 @@ from reportlab.lib.enums import TA_CENTER
 import openpyxl
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from datetime import datetime
+from django.db import transaction
+
+
+
+MONEY_QUANT = Decimal("0.01")
+
+
+def compute_purchase_totals(quantity, unit_price, discount_pct, tax_pct):
+
+    subtotal_base = unit_price * quantity  
+
+
+    discount_amount = subtotal_base * (discount_pct / Decimal("100"))
+
+
+    taxable_base = subtotal_base
+    tax_amount = taxable_base * (tax_pct / Decimal("100"))
+
+
+    line_total = subtotal_base - discount_amount + tax_amount
+
+
+    discount_amount = discount_amount.quantize(MONEY_QUANT, rounding=ROUND_HALF_UP)
+    tax_amount = tax_amount.quantize(MONEY_QUANT, rounding=ROUND_HALF_UP)
+    line_total = line_total.quantize(MONEY_QUANT, rounding=ROUND_HALF_UP)
+
+    return discount_amount, tax_amount, line_total
 
 
 @login_required
@@ -1668,3 +1696,366 @@ def quotation_delete(request, pk):
     quotation.delete()
     messages.success(request, "Quotation deleted successfully.")
     return redirect("quotations_index")
+
+
+@login_required
+def purchases_index(request):
+    purchases = Purchase.objects.select_related("supplier", "product").order_by(
+        "-purchase_date", "-created_at"
+    )
+    return render(request, "purchases/list.html", {"purchases": purchases})
+
+
+@login_required
+def purchase_create(request):
+    suppliers = Supplier.objects.all().order_by("name")
+    products = Product.objects.all().order_by("name")
+    errors = []
+
+    if request.method == "POST":
+        supplier_name = request.POST.get("supplier_name", "").strip()
+        product_name = request.POST.get("product_name", "").strip()
+        purchase_date = request.POST.get("purchase_date", "").strip()
+        quantity = request.POST.get("quantity", "").strip()
+        unit_price = request.POST.get("unit_price", "").strip()
+        discount = request.POST.get("discount", "").strip()
+        tax_rate = request.POST.get("tax_rate", "").strip()
+        status = request.POST.get("status", "pending").strip()
+        paid_amount = request.POST.get("paid_amount", "").strip()
+        description = request.POST.get("description", "").strip()
+
+        if not supplier_name:
+            errors.append("Supplier name is required.")
+        if not product_name:
+            errors.append("Product name is required.")
+        if not purchase_date:
+            errors.append("Purchase date is required.")
+        if not quantity:
+            errors.append("Quantity is required.")
+        if not unit_price:
+            errors.append("Unit price is required.")
+        if discount == "":
+            errors.append("Discount is required.")
+        if tax_rate == "":
+            errors.append("Tax rate is required.")
+        if not status:
+            errors.append("Status is required.")
+        if paid_amount == "":
+            errors.append("Paid amount is required.")
+
+        supplier = Supplier.objects.filter(name=supplier_name).first()
+        if not supplier:
+            errors.append("Selected supplier does not exist.")
+
+        product = Product.objects.filter(name=product_name).first()
+        if not product:
+            errors.append("Selected product does not exist.")
+
+        try:
+            quantity_val = int(quantity)
+            if quantity_val < 0:
+                errors.append("Quantity must be at least 0.")
+        except Exception:
+            errors.append("Quantity must be an integer.")
+            quantity_val = 0
+
+        def to_decimal(value, field_name, min_val=None, max_val=None):
+            nonlocal errors
+            try:
+                d = Decimal(value)
+            except Exception:
+                errors.append(f"{field_name} must be a valid number.")
+                return Decimal("0")
+            if min_val is not None and d < min_val:
+                errors.append(f"{field_name} must be at least {min_val}.")
+            if max_val is not None and d > max_val:
+                errors.append(f"{field_name} must not exceed {max_val}.")
+            return d
+
+        unit_price_val = to_decimal(unit_price, "Unit price", Decimal("0"))
+        discount_val = to_decimal(discount, "Discount", Decimal("0"), Decimal("100"))
+        tax_rate_val = to_decimal(tax_rate, "Tax rate", Decimal("0"), Decimal("100"))
+        paid_amount_val = to_decimal(paid_amount, "Paid amount", Decimal("0"))
+
+        
+        discount_amt, tax_amount_val, line_total_val = compute_purchase_totals(
+            quantity_val,
+            unit_price_val,
+            discount_val,
+            tax_rate_val,
+        )
+
+       
+        if paid_amount_val > line_total_val:
+            errors.append("Paid amount cannot exceed the line total.")
+
+ 
+        if paid_amount_val == 0:
+            payment_status = Purchase.PaymentStatusChoices.UNPAID
+        elif paid_amount_val < line_total_val:
+            payment_status = Purchase.PaymentStatusChoices.PARTIAL
+        else:
+            payment_status = Purchase.PaymentStatusChoices.PAID
+
+        if not errors:
+            with transaction.atomic():
+                Purchase.objects.create(
+                    supplier=supplier,
+                    product=product,
+                    reference=str(Purchase.objects.count() + 1),
+                    purchase_date=purchase_date,
+                    quantity=quantity_val,
+                    unit_price=unit_price_val,
+                    discount=discount_val,     
+                    tax_rate=tax_rate_val,      
+                    tax_amount=tax_amount_val,  
+                    line_total=line_total_val,  
+                    status=status,
+                    paid_amount=paid_amount_val,
+                    description=description or None,
+                    payment_status=payment_status,
+                    is_quantity_added_to_product=False,
+                )
+
+            messages.success(request, "Purchase created successfully!")
+            return redirect("purchases_index")
+
+        old = {
+            "supplier_name": supplier_name,
+            "product_name": product_name,
+            "purchase_date": purchase_date,
+            "quantity": quantity,
+            "unit_price": unit_price,
+            "discount": discount,
+            "tax_rate": tax_rate,
+            "status": status,
+            "paid_amount": paid_amount,
+            "description": description,
+        }
+    else:
+        errors = []
+        old = {}
+
+    context = {
+        "errors": errors,
+        "old": old,
+        "suppliers": suppliers,
+        "products": products,
+    }
+    return render(request, "purchases/add.html", context)
+
+
+
+@login_required
+def purchase_edit(request, pk):
+    purchase = get_object_or_404(Purchase, pk=pk)
+    suppliers = Supplier.objects.all().order_by("name")
+    products = Product.objects.all().order_by("name")
+    errors = []
+
+    if request.method == "POST":
+        supplier_name = request.POST.get("supplier_name", "").strip()
+        product_name = request.POST.get("product_name", "").strip()
+        purchase_date = request.POST.get("purchase_date", "").strip()
+        quantity = request.POST.get("quantity", "").strip()
+        unit_price = request.POST.get("unit_price", "").strip()
+        discount = request.POST.get("discount", "").strip()
+        tax_rate = request.POST.get("tax_rate", "").strip()
+        status = request.POST.get("status", purchase.status).strip()
+        paid_amount = request.POST.get("paid_amount", "").strip()
+        description = request.POST.get("description", "").strip()
+
+        if not supplier_name:
+            errors.append("Supplier name is required.")
+        if not product_name:
+            errors.append("Product name is required.")
+        if not purchase_date:
+            errors.append("Purchase date is required.")
+        if not quantity:
+            errors.append("Quantity is required.")
+        if not unit_price:
+            errors.append("Unit price is required.")
+        if discount == "":
+            errors.append("Discount is required.")
+        if tax_rate == "":
+            errors.append("Tax rate is required.")
+        if not status:
+            errors.append("Status is required.")
+        if paid_amount == "":
+            errors.append("Paid amount is required.")
+
+        supplier = Supplier.objects.filter(name=supplier_name).first()
+        if not supplier:
+            errors.append("Selected supplier does not exist.")
+        product = Product.objects.filter(name=product_name).first()
+        if not product:
+            errors.append("Selected product does not exist.")
+
+        try:
+            quantity_val = int(quantity)
+            if quantity_val < 0:
+                errors.append("Quantity must be at least 0.")
+        except Exception:
+            errors.append("Quantity must be an integer.")
+            quantity_val = 0
+
+        def to_decimal(value, field_name, min_val=None, max_val=None):
+            nonlocal errors
+            try:
+                d = Decimal(value)
+            except Exception:
+                errors.append(f"{field_name} must be a valid number.")
+                return Decimal("0")
+            if min_val is not None and d < min_val:
+                errors.append(f"{field_name} must be at least {min_val}.")
+            if max_val is not None and d > max_val:
+                errors.append(f"{field_name} must not exceed {max_val}.")
+            return d
+
+        unit_price_val = to_decimal(unit_price, "Unit price", Decimal("0"))
+        discount_val = to_decimal(discount, "Discount", Decimal("0"), Decimal("100"))
+        tax_rate_val = to_decimal(tax_rate, "Tax rate", Decimal("0"), Decimal("100"))
+        paid_amount_val = to_decimal(paid_amount, "Paid amount", Decimal("0"))
+
+        
+        discount_amt, tax_amount_val, line_total_val = compute_purchase_totals(
+            quantity_val,
+            unit_price_val,
+            discount_val,
+            tax_rate_val,
+        )
+
+        if paid_amount_val > line_total_val:
+            errors.append("Paid amount cannot exceed the line total.")
+
+        if paid_amount_val == 0:
+            payment_status = Purchase.PaymentStatusChoices.UNPAID
+        elif paid_amount_val < line_total_val:
+            payment_status = Purchase.PaymentStatusChoices.PARTIAL
+        else:
+            payment_status = Purchase.PaymentStatusChoices.PAID
+
+        if not errors:
+            with transaction.atomic():
+                purchase.supplier = supplier
+                purchase.product = product
+                purchase.purchase_date = purchase_date
+                purchase.quantity = quantity_val
+                purchase.unit_price = unit_price_val
+                purchase.discount = discount_val
+                purchase.tax_rate = tax_rate_val
+                purchase.tax_amount = tax_amount_val
+                purchase.line_total = line_total_val
+                purchase.status = status
+                purchase.paid_amount = paid_amount_val
+                purchase.description = description or None
+                purchase.payment_status = payment_status
+                purchase.save()
+
+            messages.success(request, "Purchase updated successfully!")
+            return redirect("purchases_index")
+
+        old = {
+            "supplier_name": supplier_name,
+            "product_name": product_name,
+            "purchase_date": purchase_date,
+            "quantity": quantity,
+            "unit_price": unit_price,
+            "discount": discount,
+            "tax_rate": tax_rate,
+            "status": status,
+            "paid_amount": paid_amount,
+            "description": description,
+        }
+    else:
+        old = {
+            "supplier_name": purchase.supplier.name if purchase.supplier else "",
+            "product_name": purchase.product.name if purchase.product else "",
+            "purchase_date": purchase.purchase_date,
+            "quantity": purchase.quantity,
+            "unit_price": purchase.unit_price,
+            "discount": purchase.discount,
+            "tax_rate": purchase.tax_rate,
+            "status": purchase.status,
+            "paid_amount": purchase.paid_amount,
+            "description": purchase.description or "",
+        }
+
+    context = {
+        "errors": errors,
+        "old": old,
+        "purchase": purchase,
+        "suppliers": suppliers,
+        "products": products,
+    }
+    return render(request, "purchases/edit.html", context)
+
+
+
+
+
+@login_required
+def purchase_delete(request, pk):
+    purchase = get_object_or_404(Purchase, pk=pk)
+    if request.method == "POST":
+        purchase.delete()
+        messages.success(request, "Purchase deleted successfully.")
+        return redirect("purchases_index")
+    purchase.delete()
+    messages.success(request, "Purchase deleted successfully.")
+    return redirect("purchases_index")
+
+
+@login_required
+def purchase_more_options(request, pk):
+    purchase = get_object_or_404(
+        Purchase.objects.select_related("product", "supplier"), pk=pk
+    )
+    return render(request, "purchases/more_options.html", {"purchase": purchase})
+
+
+@login_required
+def purchase_adjust_quantity(request):
+    if request.method != "POST":
+        messages.error(request, "Invalid request method.")
+        return redirect("purchases_index")
+
+    purchase_id = request.POST.get("purchase_id")
+    if not purchase_id:
+        messages.error(request, "Purchase ID is required.")
+        return redirect("purchases_index")
+
+    try:
+        purchase_id_int = int(purchase_id)
+    except Exception:
+        messages.error(request, "Invalid purchase ID.")
+        return redirect("purchases_index")
+
+    with transaction.atomic():
+        purchase = get_object_or_404(
+            Purchase.objects.select_related("product"), pk=purchase_id_int
+        )
+        product = purchase.product
+        if not product:
+            messages.error(request, "This purchase has no product attached.")
+            return redirect("purchases_index")
+
+        if not purchase.is_quantity_added_to_product:
+
+            product.quantity += purchase.quantity
+            product.save(update_fields=["quantity"])
+            purchase.is_quantity_added_to_product = True
+            purchase.save(update_fields=["is_quantity_added_to_product"])
+            messages.success(request, "Product quantity incremented successfully!")
+        else:
+
+            if product.quantity < purchase.quantity:
+                messages.warning(request, "Not enough stock to remove this purchase!")
+                return redirect("purchases_index")
+            product.quantity -= purchase.quantity
+            product.save(update_fields=["quantity"])
+            purchase.is_quantity_added_to_product = False
+            purchase.save(update_fields=["is_quantity_added_to_product"])
+            messages.success(request, "Product quantity decremented successfully!")
+
+    return redirect("purchases_index")

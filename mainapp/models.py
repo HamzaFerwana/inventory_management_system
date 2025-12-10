@@ -163,3 +163,58 @@ class Quotation(models.Model):
 
     def get_grand_total(self):
         return self.get_subtotal_after_discount() + self.get_tax_amount()
+
+
+class Purchase(models.Model):
+    class StatusChoices(models.TextChoices):
+        PENDING = "pending", "Pending"
+        ORDERED = "ordered", "Ordered"
+        RECEIVED = "received", "Received"
+        CANCELLED = "cancelled", "Cancelled"
+
+    class PaymentStatusChoices(models.TextChoices):
+        UNPAID = "unpaid", "Unpaid"
+        PARTIAL = "partial", "Partial"
+        PAID = "paid", "Paid"
+
+    supplier = models.ForeignKey(
+        "Supplier",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="purchases",
+    )
+    product = models.ForeignKey(
+        "Product",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="purchases",
+    )
+    reference = models.CharField(max_length=255, unique=True)
+    purchase_date = models.DateField()
+    quantity = models.IntegerField()
+    is_quantity_added_to_product = models.BooleanField(default=False)
+    unit_price = models.DecimalField(max_digits=12, decimal_places=2)
+    discount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    tax_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    tax_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    line_total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    status = models.CharField(
+        max_length=20,
+        choices=StatusChoices.choices,
+        default=StatusChoices.PENDING,
+    )
+    payment_status = models.CharField(
+        max_length=20,
+        choices=PaymentStatusChoices.choices,
+        default=PaymentStatusChoices.UNPAID,
+    )
+    paid_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    @property
+    def remaining_amount(self):
+        return self.line_total - self.paid_amount

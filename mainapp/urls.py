@@ -95,4 +95,18 @@ urlpatterns = [
     path(
         "quotations/<int:pk>/delete/", views.quotation_delete, name="quotations_delete"
     ),
+    path("purchases/", views.purchases_index, name="purchases_index"),
+    path("purchases/create/", views.purchase_create, name="purchases_create"),
+    path("purchases/<int:pk>/edit/", views.purchase_edit, name="purchases_edit"),
+    path("purchases/<int:pk>/delete/", views.purchase_delete, name="purchases_delete"),
+    path(
+        "purchases/adjust-quantity/",
+        views.purchase_adjust_quantity,
+        name="purchases_adjust_quantity",
+    ),
+    path(
+        "purchases/<int:pk>/more-options/",
+        views.purchase_more_options,
+        name="purchases_more_options",
+    ),
 ]

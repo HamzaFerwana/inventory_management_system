@@ -238,8 +238,26 @@
                             </ul>
                         </li>
 
-
-
+                        <li class="submenu">
+                            <a href="javascript:void(0);">
+                                <img src="{% static 'img/icons/purchase1.svg' %}" alt="img">
+                                <span>Purchase</span> <span class="menu-arrow"></span>
+                            </a>
+                            <ul>
+                                <li>
+                                    <a href="{% url 'purchases_index' %}"
+                                        class="{% if request.resolver_match.url_name == 'purchases_index' or request.resolver_match.url_name == 'purchases_edit' %}active{% endif %}">
+                                        Purchase List
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{% url 'purchases_create' %}"
+                                        class="{% if request.resolver_match.url_name == 'purchases_create' %}active{% endif %}">
+                                        Add Purchase
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
                     </ul>
                 </div>
             </div>
