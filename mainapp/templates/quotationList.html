@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 {% load static %}
 
 {% block title %}Quotation List{% endblock %}
@@ -11,8 +11,7 @@
   </div>
   <div class="page-btn">
     <a href="{% url 'quotations_create' %}" class="btn btn-added">
-      <img src="{% static 'img/icons/plus.svg' %}" alt="img" class="me-2" />
-      Add Quotation
+      <img src="{% static 'img/icons/plus.svg' %}" alt="img" class="me-2">Add Quotation
     </a>
   </div>
 </div>
@@ -21,36 +20,12 @@
   <div class="card-body">
     <div class="table-top">
       <div class="search-set">
-        <div class="search-path">
-          <a class="btn btn-filter" id="filter_search">
-            <img src="{% static 'img/icons/filter.svg' %}" alt="img" />
-            <span><img src="{% static 'img/icons/closes.svg' %}" alt="img" /></span>
-          </a>
-        </div>
+        <div class="search-path"></div>
         <div class="search-input">
           <a class="btn btn-searchset">
-            <img src="{% static 'img/icons/search-white.svg' %}" alt="img" />
+            <img src="{% static 'img/icons/search-white.svg' %}" alt="img">
           </a>
         </div>
-      </div>
-      <div class="wordset">
-        <ul>
-          <li>
-            <a data-bs-toggle="tooltip" data-bs-placement="top" title="pdf">
-              <img src="{% static 'img/icons/pdf.svg' %}" alt="img" />
-            </a>
-          </li>
-          <li>
-            <a data-bs-toggle="tooltip" data-bs-placement="top" title="excel">
-              <img src="{% static 'img/icons/excel.svg' %}" alt="img" />
-            </a>
-          </li>
-          <li>
-            <a data-bs-toggle="tooltip" data-bs-placement="top" title="print">
-              <img src="{% static 'img/icons/printer.svg' %}" alt="img" />
-            </a>
-          </li>
-        </ul>
       </div>
     </div>
 
@@ -62,7 +37,13 @@
             <th>Reference</th>
             <th>Customer</th>
             <th>Status</th>
+            <th>Qty</th>
+            <th>Unit Price</th>
+            <th>Discount %</th>
+            <th>Tax %</th>
+            <th>Subtotal</th>
             <th>Grand Total ($)</th>
+            <th>Date</th>
             <th>Action</th>
           </tr>
         </thead>
@@ -72,9 +53,9 @@
             <td class="productimgname">
               <a href="javascript:void(0);" class="product-img">
                 {% if quotation.product.main_image %}
-                <img src="{{ quotation.product.main_image.url }}" alt="product" />
+                <img src="{{ quotation.product.main_image.url }}" alt="product">
                 {% else %}
-                <img src="{% static 'img/product/noimage.png' %}" alt="product" />
+                <img src="{% static 'img/product/noimage.png' %}" alt="product">
                 {% endif %}
               </a>
               <a href="javascript:void(0);">{{ quotation.product.name }}</a>
@@ -82,33 +63,46 @@
             <td>{{ quotation.reference }}</td>
             <td>{{ quotation.customer.name }}</td>
             <td>
-              {% if quotation.status == 'accepted' %}
-                <span class="badges bg-lightgreen">{{ quotation.get_status_display }}</span>
-              {% elif quotation.status == 'sent' %}
-                <span class="badges bg-lightgreen">{{ quotation.get_status_display }}</span>
+              {% if quotation.status == 'accepted' or quotation.status == 'sent' %}
+              <span class="badges bg-lightgreen">{{ quotation.get_status_display }}</span>
               {% elif quotation.status == 'ordered' %}
-                <span class="badges bg-lightyellow">{{ quotation.get_status_display }}</span>
-              {% elif quotation.status == 'pending' %}
-                <span class="badges bg-lightred">{{ quotation.get_status_display }}</span>
-              {% elif quotation.status == 'rejected' %}
-                <span class="badges bg-lightred">{{ quotation.get_status_display }}</span>
+              <span class="badges bg-lightyellow">{{ quotation.get_status_display }}</span>
+              {% elif quotation.status == 'pending' or quotation.status == 'rejected' %}
+              <span class="badges bg-lightred">{{ quotation.get_status_display }}</span>
               {% else %}
-                <span class="badges bg-lightgrey">{{ quotation.get_status_display }}</span>
+              <span class="badges bg-lightgrey">{{ quotation.get_status_display }}</span>
               {% endif %}
             </td>
+            <td>{{ quotation.quantity }}</td>
+            <td>{{ quotation.unit_price|floatformat:2 }}</td>
+            <td>{{ quotation.discount_percentage|floatformat:2 }}</td>
+            <td>{{ quotation.tax_percentage|floatformat:2 }}</td>
+            <td>{{ quotation.get_subtotal|floatformat:2 }}</td>
             <td>{{ quotation.get_grand_total|floatformat:2 }}</td>
+            <td>{{ quotation.created_at|date:"Y-m-d" }}</td>
             <td>
               <a class="me-3" href="{% url 'quotations_edit' quotation.pk %}">
-                <img src="{% static 'img/icons/edit.svg' %}" alt="img" />
+                <img src="{% static 'img/icons/edit.svg' %}" alt="img">
               </a>
               <a class="me-3" href="{% url 'quotations_delete' quotation.pk %}">
-                <img src="{% static 'img/icons/delete.svg' %}" alt="img" />
+                <img src="{% static 'img/icons/delete.svg' %}" alt="img">
               </a>
             </td>
           </tr>
           {% empty %}
           <tr>
-            <td colspan="6" class="text-center">No quotations found</td>
+            <td></td>
+            <td></td>
+            <td class="text-center">No quotations found</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
           </tr>
           {% endfor %}
         </tbody>
@@ -116,5 +110,4 @@
     </div>
   </div>
 </div>
-
 {% endblock %}
