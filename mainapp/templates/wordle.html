@@ -12,27 +12,44 @@
 </head>
 
 <body>
-    <div class="app" role="application" aria-label="Wordle Game">
-        <header>
-            <h1>Wordle — Guess a 5-Letter Word</h1>
-            <div class="footer">
-                You have 6 attempts. After each attempt, the letter will be colored: green for correct position, yellow
-                for correct letter in wrong position, gray for letter not in word.
-            </div>
-        </header>
+    <div class="logout-btn">
+        <a href="{% url 'index' %}">
+            <i class="fas fa-home"></i> Dashboard
+        </a>
+    </div>
 
-        <main>
-            <div id="board" class="board" aria-hidden="false"></div>
-            <div id="keyboard" class="keyboard" aria-hidden="false"></div>
-
-            <div style="display:flex;gap:12px;justify-content:center;margin-top:14px;">
-                <button id="btn-reset" class="key">Reset</button>
-                <button id="btn-reveal" class="key">Reveal Word</button>
+    <div class="game-container">
+        <div class="game-header">
+            <h1>WORDLE GAME</h1>
+            <div class="instructions">
+                <strong>How to Play:</strong> You have 6 attempts to guess a 5-letter word. After each guess:
+                <br>
+                <span class="badge bg-success mt-2">Green</span> = Correct letter in correct position
+                <br>
+                <span class="badge bg-warning text-dark">Yellow</span> = Correct letter in wrong position
+                <br>
+                <span class="badge bg-secondary">Gray</span> = Letter not in word
             </div>
-        </main>
+        </div>
+
+        <div id="board" class="board"></div>
+        <div id="keyboard" class="keyboard"></div>
+
+        <div class="controls">
+            <button id="btn-reset" class="btn-game btn-reset">
+                <i class="fas fa-redo"></i> Reset
+            </button>
+            <button id="btn-reveal" class="btn-game btn-reveal">
+                <i class="fas fa-eye"></i> Reveal
+            </button>
+        </div>
     </div>
 
     <div id="toast" class="toast" style="display:none"></div>
+
+    <script src="{% static 'js/jquery-3.6.0.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'wordle-assets/js/script.js' %}"></script>
 </body>
 
 </html>
