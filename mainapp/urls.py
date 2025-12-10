@@ -92,5 +92,7 @@ urlpatterns = [
     path("quotations/", views.quotations_index, name="quotations_index"),
     path("quotations/create/", views.quotation_create, name="quotations_create"),
     path("quotations/<int:pk>/edit/", views.quotation_edit, name="quotations_edit"),
-    path("quotations/<int:pk>/delete/", views.quotation_delete, name="quotations_delete"),
+    path(
+        "quotations/<int:pk>/delete/", views.quotation_delete, name="quotations_delete"
+    ),
 ]

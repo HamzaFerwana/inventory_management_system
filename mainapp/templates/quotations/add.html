@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Add Quotation{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title">
+        <h4>Quotation</h4>
+        <h6>Create Quotation</h6>
+    </div>
+</div>
+
+{% if errors %}
+<div class="alert alert-danger" role="alert">
+    <ul class="mb-0">
+        {% for error in errors %}
+        <li>{{ error }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+    {% csrf_token %}
+    <div class="row">
+        <div class="col-lg-4 col-sm-6 col-12">
+            <div class="form-group">
+                <label for="id_reference">Reference <span class="text-danger">*</span></label>
+                <input type="text" id="id_reference" name="reference" class="form-control"
+                       value="{{ old.reference|default_if_none:'' }}" required>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-sm-6 col-12">
+            <div class="form-group">
+                <label for="id_customer">Customer <span class="text-danger">*</span></label>
+                <select class="form-control" id="id_customer" name="customer_id" required>
+                    <option value="">Select customer</option>
+                    {% for customer in customers %}
+                        <option value="{{ customer.id }}"
+                                {% if old.customer_id == customer.id %} selected{% endif %}>
+                            {{ customer.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-sm-6 col-12">
+            <div class="form-group">
+                <label for="id_product">Product <span class="text-danger">*</span></label>
+                <select class="form-control" id="id_product" name="product_id" required>
+                    <option value="">Select product</option>
+                    {% for product in products %}
+                        <option value="{{ product.id }}"
+                                {% if old.product_id == product.id %} selected{% endif %}>
+                            {{ product.name }} ({{ product.sku }})
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-sm-6 col-12">
+            <div class="form-group">
+                <label for="id_quantity">Quantity <span class="text-danger">*</span></label>
+                <input type="number" id="id_quantity" name="quantity" class="form-control"
+                       value="{{ old.quantity|default:'1' }}" min="1" required>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-sm-6 col-12">
+            <div class="form-group">
+                <label for="id_unit_price">Unit Price <span class="text-danger">*</span></label>
+                <input type="number" id="id_unit_price" name="unit_price" class="form-control" step="0.01"
+                       min="0" value="{{ old.unit_price|default:'0' }}" required>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-sm-6 col-12">
+            <div class="form-group">
+                <label for="id_discount_percentage">Discount (%)</label>
+                <input type="number" id="id_discount_percentage" name="discount_percentage" class="form-control"
+                       step="0.01" min="0" value="{{ old.discount_percentage|default:'0' }}">
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-sm-6 col-12">
+            <div class="form-group">
+                <label for="id_tax_percentage">Tax (%)</label>
+                <input type="number" id="id_tax_percentage" name="tax_percentage" class="form-control"
+                       step="0.01" min="0" value="{{ old.tax_percentage|default:'0' }}">
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-sm-6 col-12">
+            <div class="form-group">
+                <label for="id_status">Status</label>
+                <select class="form-control" id="id_status" name="status">
+                    {% for value, label in status_choices %}
+                        <option value="{{ value }}" {% if old.status == value %} selected{% endif %}>
+                            {{ label }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="col-lg-8 col-sm-12 col-12">
+            <div class="form-group">
+                <label for="id_notes">Notes</label>
+                <textarea id="id_notes" class="form-control" name="notes"
+                          rows="3">{{ old.notes|default_if_none:'' }}</textarea>
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <button type="submit" class="btn btn-submit me-2">Submit</button>
+            <a href="{% url 'quotations_index' %}" class="btn btn-cancel">Cancel</a>
+        </div>
+    </div>
+</form>
+
+    </div>
+</div>
+{% endblock %}

@@ -1440,14 +1440,14 @@ def quotations_index(request):
     quotations = Quotation.objects.select_related("product", "customer").order_by(
         "-created_at"
     )
-    return render(request, "quotationList.html", {"quotations": quotations})
+    return render(request, "quotations/list.html", {"quotations": quotations})
 
 
 @login_required
 def quotation_create(request):
-    errors = []
     products = Product.objects.order_by("name")
     customers = Customer.objects.order_by("name")
+    errors = []
 
     if request.method == "POST":
         reference = request.POST.get("reference", "").strip()
@@ -1539,15 +1539,15 @@ def quotation_create(request):
         "customers": customers,
         "status_choices": Quotation.STATUS_CHOICES,
     }
-    return render(request, "addquotation.html", context)
+    return render(request, "quotations/add.html", context)
 
 
 @login_required
 def quotation_edit(request, pk):
     quotation = get_object_or_404(Quotation, pk=pk)
-    errors = []
     products = Product.objects.order_by("name")
     customers = Customer.objects.order_by("name")
+    errors = []
 
     if request.method == "POST":
         reference = request.POST.get("reference", "").strip()
@@ -1653,7 +1653,7 @@ def quotation_edit(request, pk):
         "quotation": quotation,
         "status_choices": Quotation.STATUS_CHOICES,
     }
-    return render(request, "addquotation.html", context)
+    return render(request, "quotations/edit.html", context)
 
 
 @login_required

@@ -29,6 +29,7 @@
 
     <div class="main-wrapper">
 
+        <!-- Header -->
         <div class="header">
             <div class="header-left active">
                 <a href="{% url 'index' %}" class="logo">
@@ -88,7 +89,9 @@
                 {% endif %}
             </ul>
         </div>
+        <!-- /Header -->
 
+        <!-- Sidebar -->
         <div class="sidebar" id="sidebar">
             <div class="sidebar-inner slimscroll">
                 <div id="sidebar-menu" class="sidebar-menu">
@@ -147,6 +150,7 @@
                                 </li>
                             </ul>
                         </li>
+
                         <li class="submenu">
                             <a href="javascript:void(0);">
                                 <img src="{% static 'img/icons/users1.svg' %}" alt="img">
@@ -179,6 +183,28 @@
                                 </li>
                             </ul>
                         </li>
+
+                        <li class="submenu">
+                            <a href="javascript:void(0);">
+                                <img src="{% static 'img/icons/quotation1.svg' %}" alt="img">
+                                <span>Quotation</span> <span class="menu-arrow"></span>
+                            </a>
+                            <ul>
+                                <li>
+                                    <a href="{% url 'quotations_index' %}"
+                                        class="{% if request.resolver_match.url_name == 'quotations_index' or request.resolver_match.url_name == 'quotations_edit' %}active{% endif %}">
+                                        Quotation List
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{% url 'quotations_create' %}"
+                                        class="{% if request.resolver_match.url_name == 'quotations_create' %}active{% endif %}">
+                                        Add Quotation
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+
                         <li class="submenu">
                             <a href="javascript:void(0);">
                                 <img src="{% static 'img/icons/expense1.svg' %}" alt="img">
@@ -211,10 +237,15 @@
                                 </li>
                             </ul>
                         </li>
+
+
+
                     </ul>
                 </div>
             </div>
         </div>
+        <!-- /Sidebar -->
+
         <div class="page-wrapper">
             <div class="content">
                 {% block content %}{% endblock %}
