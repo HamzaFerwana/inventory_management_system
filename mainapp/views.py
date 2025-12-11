@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.contrib import messages
+from django.db import models
 from .models import (
     Category,
     SubCategory,
@@ -51,7 +52,28 @@ def compute_purchase_totals(quantity, unit_price, discount_pct, tax_pct):
 
 @login_required
 def index(request):
-    return render(request, "index.html")
+    products = Product.objects.all().order_by("-created_at")[:4]
+    
+    # Get counts from database
+    total_customers = Customer.objects.count()
+    total_suppliers = Supplier.objects.count()
+    total_products = Product.objects.count()
+    total_purchases = Purchase.objects.aggregate(total=models.Sum('line_total'))['total'] or 0
+    total_expenses = Expense.objects.aggregate(total=models.Sum('amount'))['total'] or 0
+    
+    # Convert Decimal to float for JSON serialization
+    total_purchases = float(total_purchases) if total_purchases else 0
+    total_expenses = float(total_expenses) if total_expenses else 0
+    
+    context = {
+        'products': products,
+        'total_customers': total_customers,
+        'total_suppliers': total_suppliers,
+        'total_products': total_products,
+        'total_purchases': total_purchases,
+        'total_expenses': total_expenses,
+    }
+    return render(request, "index.html", context)
 
 
 @login_required
