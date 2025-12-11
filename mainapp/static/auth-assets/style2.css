@@ -117,4 +117,39 @@ body{
 	.login-card{ width:92%; padding:22px }
 	.back-link{ left:12px; top:12px }
 }
+.google-login-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+
+    padding: 12px 20px;
+    width: 260px;
+
+    background-color: #ffffff;
+    border: 2px solid #dadce0;
+    border-radius: 8px;
+    cursor: pointer;
+
+    font-size: 15px;
+    font-weight: 500;
+    color: #444;
+
+    transition: 0.2s ease;
+}
+
+.google-login-btn img {
+    width: 22px;
+    height: 22px;
+}
+
+.google-login-btn:hover {
+    background-color: #f7f7f7;
+    border-color: #c6c6c6;
+}
+
+.google-login-btn:active {
+    background-color: #eeeeee;
+    transform: scale(0.98);
+}
 

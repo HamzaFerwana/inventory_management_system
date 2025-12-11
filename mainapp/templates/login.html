@@ -1,4 +1,5 @@
 {% load static %}
+{% load socialaccount %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -56,6 +57,12 @@
                     <a href="{% url 'register' %}">Sign up</a>
                 </p>
             </form>
+             <a href="{% provider_login_url 'google' %}?next=/login_with_google">
+        <button class="google-login-btn">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Icon">
+            <span>Sign in with Google</span>
+        </button>
+    </a>
         </div>
     </div>
 </body>

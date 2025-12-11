@@ -28,7 +28,23 @@ from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from datetime import datetime
 from django.db import transaction
 
-
+from allauth.socialaccount.models import SocialAccount
+def login_with_google(request):
+    social = SocialAccount.objects.get(user=request.user)
+    data = social.extra_data 
+    name=data.get("name")
+    email=data.get("email")
+    user_id=data.get("id")
+    print(data)
+    picture=data.get("picture")
+    request.session['user_id']=user_id
+    request.session['login']=True
+    context={
+        "name":name,
+        "email":email,
+        "picture":picture
+    }
+    return render(request,"index.html",context)
 MONEY_QUANT = Decimal("0.01")
 
 
